@@ -112,12 +112,12 @@ The **project root** is the top-level folder containing this README. Framework-s
 | Item | Current documentation |
 | --- | --- |
 | Final store name | To be chosen |
-| GitHub repository address | To be added after repository creation |
+| GitHub repository address | https://github.com/boracelikors/CS308-project |
 | Frontend framework and version | To be confirmed by Yunus and the team |
-| Backend framework and version | To be confirmed by Onur and the team |
-| Required runtime versions | To be documented after technology selection |
-| Dependency/package manager | To be documented after technology selection |
-| Backend development port | Planned: 3001; confirm against the implementation |
+| Backend framework and version | Express 5.3.0 (Node.js) |
+| Required runtime versions | Backend: Node.js (tested with v26.13.0) |
+| Dependency/package manager | Backend: npm |
+| Backend development port | 3001 (implemented) |
 | Frontend development port | To be documented after frontend setup |
 | Database | Not required for the agreed basic Sprint 1 plan |
 | Hosting/deployment | Not specified in this plan |
@@ -159,20 +159,29 @@ git clone YOUR_REPOSITORY_URL
 
 **This section must be completed and tested before the project is considered ready for a new teammate to run.** The commands are deliberately not invented because the framework and runtime choices have not been confirmed.
 
-### Backend — Onur fills this in
+### Backend
 
-Document each of these separately:
-
-1. Required runtime and version.
-2. Command to move into the backend folder.
-3. Command to install dependencies.
-4. Any configuration file required, with non-secret example values.
-5. Command to start the development server.
-6. Expected terminal message when it starts successfully.
-7. Actual local server address and port.
-8. Command or keyboard action used to stop the server.
-
-With the planned port, the health-check address is `http://localhost:3001/health`.
+1. **Runtime:** Node.js (tested with v26.13.0) and npm (tested with 11.20.0). Check with `node -v` and `npm -v`.
+2. **Move into the backend folder** (from the project root):
+   ```sh
+   cd backend
+   ```
+3. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+4. **Configuration:** None required. The port defaults to `3001`; it can optionally be overridden with the `PORT` environment variable (e.g. `PORT=4000 npm run dev`).
+5. **Start the development server** (auto-restarts on file changes):
+   ```sh
+   npm run dev
+   ```
+   Or without auto-restart: `npm start`
+6. **Expected terminal message:**
+   ```text
+   Backend running on http://localhost:3001
+   ```
+7. **Local address:** `http://localhost:3001`. Health check: `http://localhost:3001/health` → `{"status":"ok"}`
+8. **Stop the server:** press `Ctrl + C` in the terminal where it is running.
 
 **localhost** means your own computer. The number after the colon is the **port**, which identifies the running service.
 
