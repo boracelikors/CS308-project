@@ -4,7 +4,7 @@ A university group project to build an online store for high-end sound equipment
 
 This README is the starting point for anyone joining or reviewing the project. You do not need to know the project beforehand: it explains what we are building, who does what, how the parts connect, and how to begin contributing.
 
-> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. It does not claim that the features are already implemented. The final store name, technology choices, repository address, and runnable setup commands still need to be filled in by the team.
+> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. It does not claim that the features are already implemented. The final store name is still to be chosen. Backend setup and the SCRUM-8 React homepage foundation are implemented; product data, cards, and integration remain separate tasks.
 
 ## 1. What are we building?
 
@@ -113,12 +113,12 @@ The **project root** is the top-level folder containing this README. Framework-s
 | --- | --- |
 | Final store name | To be chosen |
 | GitHub repository address | https://github.com/boracelikors/CS308-project |
-| Frontend framework and version | To be confirmed by Yunus and the team |
+| Frontend framework and version | React 19.3.1 + Vite 8.3.5; JavaScript and plain CSS |
 | Backend framework and version | Express 5.3.0 (Node.js) |
-| Required runtime versions | Backend: Node.js (tested with v26.13.0) |
-| Dependency/package manager | Backend: npm |
+| Required runtime versions | Frontend tested with Node.js 24.8.0; backend previously tested with v26.13.0 |
+| Dependency/package manager | npm; frontend tested with npm 11.6.0 |
 | Backend development port | 3001 (implemented) |
-| Frontend development port | To be documented after frontend setup |
+| Frontend development port | 5173; http://localhost:5173 (strict port) |
 | Database | Not required for the agreed basic Sprint 1 plan |
 | Hosting/deployment | Not specified in this plan |
 
@@ -157,7 +157,7 @@ git clone YOUR_REPOSITORY_URL
 
 ## 8. Installing and running the application
 
-**This section must be completed and tested before the project is considered ready for a new teammate to run.** The commands are deliberately not invented because the framework and runtime choices have not been confirmed.
+The backend and frontend foundation can be started independently. The complete six-product demonstration still depends on SCRUM-6, SCRUM-7, SCRUM-9, and SCRUM-10.
 
 ### Backend
 
@@ -185,18 +185,22 @@ git clone YOUR_REPOSITORY_URL
 
 **localhost** means your own computer. The number after the colon is the **port**, which identifies the running service.
 
-### Frontend — Yunus fills this in
+### Frontend — React + Vite
 
-Document each of these separately:
+1. **Runtime:** use Node.js 24.8.0 or a compatible supported version; this setup was tested with Node.js 24.8.0 and npm 11.6.0. Check with `node -v` and `npm -v`.
+2. **Move into the frontend folder** from the project root: `cd frontend`.
+3. **Install locked dependencies:** `npm ci`.
+4. **Start the development server:** `npm run dev`.
+5. **Expected output:** Vite prints `Local: http://localhost:5173/`.
+6. **Open:** http://localhost:5173. The homepage header and product section work without a backend; the collection currently shows a coming-soon state.
+7. **Stop:** press `Ctrl + C` in that terminal.
+8. **Check code and production build:** `npm run lint` and `npm run build`. To inspect the build, run `npm run preview` and open http://localhost:4173.
 
-1. Required runtime and version.
-2. Command to move into the frontend folder.
-3. Command to install dependencies.
-4. How to set the backend address, if configuration is needed.
-5. Command to start the frontend development server.
-6. Expected terminal message when it starts successfully.
-7. Exact address to open in the browser.
-8. Command or keyboard action used to stop the frontend.
+The development port is fixed at 5173. If it is occupied, stop the other server or coordinate a port change with the team; Vite will not silently switch ports.
+
+**Integration handoff:** Bartu should allow `http://localhost:5173` as the frontend origin. The planned backend address is `http://localhost:3001`. `.env.example` documents `VITE_API_BASE_URL` for Bora's later integration; a different address can be set in `frontend/.env.local`. Only public configuration belongs in `VITE_` variables.
+
+Demirhan can add his product list inside `ProductSection` in `frontend/src/App.jsx`. Bora can then pass backend data to that list and add loading/error states. See [frontend/README.md](frontend/README.md) for the component locations.
 
 ### Running both parts together
 
@@ -205,7 +209,7 @@ Document each of these separately:
 3. Open a second terminal window.
 4. Start the frontend using its verified instructions.
 5. Open the frontend address in the browser.
-6. Confirm that all six product cards appear.
+6. Once SCRUM-6, SCRUM-7, SCRUM-9, and SCRUM-10 are integrated, confirm that all six product cards appear; the SCRUM-8 foundation alone shows a coming-soon state.
 
 Never commit passwords, access tokens, or other private credentials. If configuration uses a private local file, document the needed variable names using a safe example file and exclude the real secrets from Git.
 

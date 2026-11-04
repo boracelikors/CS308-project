@@ -1,0 +1,52 @@
+.skip-link { position: absolute; left: 24px; top: -80px; z-index: 10; padding: 12px 20px; background: #fff; }
+.skip-link:focus { top: 12px; }
+.site-header, .site-footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.site-header { padding: 26px 6%; border-bottom: 1px solid #dcdcd2; }
+.brand { display: inline-flex; align-items: center; gap: 14px; font-size: 27px; font-weight: 700; letter-spacing: -1px; }
+.brand-subtitle { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; letter-spacing: 1.7px; text-transform: uppercase; }
+.brand-icon { display: flex; align-items: center; gap: 3px; height: 36px; }
+.brand-icon i { display: block; width: 4px; height: 14px; background: #aa472a; border-radius: 2px; }
+.brand-icon i:nth-child(2), .brand-icon i:nth-child(4) { height: 25px; }
+.brand-icon i:nth-child(3) { height: 36px; }
+.site-header nav a { display: inline-flex; gap: 20px; font-size: 13px; padding: 12px 0; }
+.site-header nav a:hover, .footer-brand:hover { text-decoration: underline; text-underline-offset: 5px; }
+.hero { display: grid; grid-template-columns: 1.2fr 1fr; min-height: 490px; padding: 64px 6%; gap: 40px; align-items: center; background: #eae9df; overflow: hidden; }
+.hero-copy { position: relative; z-index: 1; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2.3px; text-transform: uppercase; }
+.hero h1 { margin-top: 27px; font-size: clamp(40px, 5.1vw, 76px); line-height: 1.04; letter-spacing: -3px; font-weight: 500; }
+.hero h1 span { color: #7b7e6d; }
+.hero-description { max-width: 400px; margin-top: 26px; color: #5d6055; font-size: 15px; line-height: 1.7; }
+.collection-link { display: inline-flex; align-items: center; gap: 32px; margin-top: 30px; padding: 14px 20px; background: #282b25; color: #fff; border-radius: 3px; font-size: 12px; }
+.collection-link:hover { background: #414739; }
+.sound-art { position: relative; width: min(100%, 370px); aspect-ratio: 1; justify-self: center; }
+.sound-ring, .sound-core { position: absolute; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.sound-ring { border: 1px solid #a0a28d; }
+.ring-outer { width: 100%; height: 100%; }
+.ring-middle { width: 80%; height: 80%; }
+.ring-inner { width: 60%; height: 60%; }
+.sound-core { width: 40%; height: 40%; background: #8a927c; box-shadow: inset -15px -14px 30px #69765f; }
+.sound-caption { position: absolute; bottom: -30px; width: 100%; text-align: center; color: #6d715f; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+.product-section { padding: 65px 6% 70px; scroll-margin-top: 24px; }
+.section-heading .eyebrow { color: #a7472b; }
+.section-heading h2 { margin-top: 14px; font-size: clamp(26px, 3vw, 38px); font-weight: 500; letter-spacing: -1.3px; }
+.section-heading > p:last-child { margin-top: 16px; font-size: 14px; line-height: 1.6; color: #66695d; }
+.product-content { margin-top: 35px; }
+.collection-empty { min-height: 160px; padding: 22px; text-align: center; border: 1px solid #dcdcd2; border-radius: 4px; }
+.empty-mark { display: block; color: #8c937e; font-size: 40px; line-height: 1; }
+.collection-empty h3 { margin-top: 13px; font-size: 16px; font-weight: 500; }
+.collection-empty p { margin-top: 8px; color: #66695d; font-size: 13px; }
+.site-footer { margin: 0 6%; padding: 25px 0; border-top: 1px solid #dcdcd2; font-size: 11px; color: #66695d; }
+.footer-brand { color: #242520; }
+@media (min-width: 1600px) {
+  .site-header, .hero, .product-section { padding-left: max(6%, calc((100vw - 1400px) / 2)); padding-right: max(6%, calc((100vw - 1400px) / 2)); }
+}
+@media (max-width: 640px) {
+  .site-header { padding: 21px 6%; gap: 12px; }
+  .brand { font-size: 23px; gap: 10px; }
+  .brand-subtitle { font-size: 8px; }
+  .site-header nav a { font-size: 11px; gap: 8px; }
+  .hero { grid-template-columns: 1fr; padding-top: 48px; padding-bottom: 50px; gap: 44px; }
+  .hero h1 { letter-spacing: -2px; }
+  .sound-art { width: 190px; margin-bottom: 22px; }
+  .product-section { padding-top: 45px; padding-bottom: 45px; }
+}
