@@ -11,7 +11,7 @@ Open http://localhost:5173. This SCRUM-8 foundation renders without the backend.
 
 ## Components and handoff
 
-- `src/components/Header.jsx`: temporary store name and collection navigation.
+- `src/components/Header.jsx`: DOBBY Audophile House branding and collection navigation.
 - `src/App.jsx`: homepage layout. Replace `<ProductSection />` with `<ProductSection><ProductList products={products} /></ProductSection>` when the list and data are ready.
 - `src/components/ProductSection.jsx`: accessible product section and an honest empty state. The `children` slot is for Demirhan's product list (SCRUM-9).
 - `src/App.css`: starter styling; Bora can extend it in SCRUM-10.

@@ -1,10 +1,10 @@
-# CS308 Group 13 — Audio Equipment Store
+# CS308 Group 13 — DOBBY Audophile House
 
 A university group project to build an online store for high-end sound equipment.
 
 This README is the starting point for anyone joining or reviewing the project. You do not need to know the project beforehand: it explains what we are building, who does what, how the parts connect, and how to begin contributing.
 
-> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. It does not claim that the features are already implemented. The final store name is still to be chosen. Backend setup and the SCRUM-8 React homepage foundation are implemented; product data, cards, and integration remain separate tasks.
+> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. It does not claim that the features are already implemented. The store name is DOBBY Audophile House. Backend setup and the SCRUM-8 React homepage foundation are implemented; product data, cards, and integration remain separate tasks.
 
 ## 1. What are we building?
 
@@ -18,7 +18,7 @@ We are building an online store focused mainly on high-end audio equipment. Its 
 - DJ controllers and setups.
 - Other related sound equipment and accessories.
 
-The store name has not yet been finalized. “Audio Equipment Store” is a working title.
+The store name is **DOBBY Audophile House**, chosen by Yunus on 5 November 2026.
 
 This is a CS308 course project by Group 13. Course requirements and the teaching team's instructions remain the source of truth for assessed deliverables; this README explains our working plan.
 
@@ -111,7 +111,7 @@ The **project root** is the top-level folder containing this README. Framework-s
 
 | Item | Current documentation |
 | --- | --- |
-| Final store name | To be chosen |
+| Final store name | DOBBY Audophile House |
 | GitHub repository address | https://github.com/boracelikors/CS308-project |
 | Frontend framework and version | React 19.3.1 + Vite 8.3.5; JavaScript and plain CSS |
 | Backend framework and version | Express 5.3.0 (Node.js) |

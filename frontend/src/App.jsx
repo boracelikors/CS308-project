@@ -26,7 +26,7 @@ export default function App() {
         <ProductSection />
       </main>
       <footer className="site-footer">
-        <a className="footer-brand" href="#top">Audio Equipment Store</a>
+        <a className="footer-brand" href="#top">DOBBY Audophile House</a>
         <p>CS308 · Group 13</p>
       </footer>
     </>
