@@ -231,6 +231,13 @@ Expected response:
 
 Purpose: return the six sample products as a JSON array.
 
+**Status:** Implemented (SCRUM-7). Address: `http://localhost:3001/products`
+
+The backend reads `backend/sample-products.json` once at startup. Restart the backend after editing that file.
+
+**CORS:** Only browser requests from the frontend origin `http://localhost:5173` are allowed. To use a different origin, set `FRONTEND_ORIGIN`, for example: `FRONTEND_ORIGIN=http://localhost:5174 npm run dev`
+
+
 **JSON** is a text format for structured data. An array is a list of records; each product record contains named fields.
 
 Example response shape, showing only one of the six records:
