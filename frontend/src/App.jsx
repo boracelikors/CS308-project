@@ -1,5 +1,7 @@
 import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
+import ProductList from './components/ProductList.jsx'
+import sampleProducts from './data/sample-products.json'
 import './App.css'
 
 export default function App() {
@@ -23,7 +25,9 @@ export default function App() {
             <span className="sound-caption">Listen. Create. Perform.</span>
           </div>
         </section>
-        <ProductSection />
+        <ProductSection>
+          <ProductList products={sampleProducts} />
+        </ProductSection>
       </main>
       <footer className="site-footer">
         <a className="footer-brand" href="#top">DOBBY Audophile House</a>
