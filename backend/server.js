@@ -4,7 +4,7 @@ const products = require("./sample-products.json"); // Load the six sample produ
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:5173"; // React (Vite) dev server
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || ["http://localhost:5173", "http://localhost:4173"]; // Vite dev server and preview
 
 app.use(cors({ origin: FRONTEND_ORIGIN })); // Only allow browser requests from our frontend
 app.use(express.json());
