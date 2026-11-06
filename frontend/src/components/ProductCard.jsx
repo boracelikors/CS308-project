@@ -90,12 +90,23 @@ export default function ProductCard({ product }) {
 
   const { name, category, price, currency = 'TRY', description, image } = product
 
-  const formattedPrice = typeof price === 'number'
-    ? new Intl.NumberFormat('tr-TR', {
+  // Format price without rounding (preserves exact decimals e.g. 1999.99 -> 1.999,99)
+  const formatPrice = (value) => {
+    if (value === null || value === undefined) return ''
+    const num = typeof value === 'number'
+      ? value
+      : (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)) ? Number(value) : null)
+
+    if (num !== null) {
+      return new Intl.NumberFormat('tr-TR', {
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(price)
-    : price
+        maximumFractionDigits: 20,
+      }).format(num)
+    }
+    return value
+  }
+
+  const formattedPrice = formatPrice(price)
 
   const imageSrc = image
     ? (image.startsWith('http') || image.startsWith('/') ? image : `/images/${image}`)
