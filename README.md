@@ -1,10 +1,10 @@
-# CS308 Group 13 — DOBBY Audophile House
+# CS308 Group 13 — DOBBY Audiophile House
 
 A university group project to build an online store for high-end sound equipment.
 
 This README is the starting point for anyone joining or reviewing the project. You do not need to know the project beforehand: it explains what we are building, who does what, how the parts connect, and how to begin contributing.
 
-> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. It does not claim that the features are already implemented. The store name is DOBBY Audophile House. Backend setup and the SCRUM-8 React homepage foundation are implemented; product data, cards, and integration remain separate tasks.
+> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. The store name is DOBBY Audiophile House. The backend, product data, cards, products endpoint, and homepage integration are implemented.
 
 ## 1. What are we building?
 
@@ -18,7 +18,7 @@ We are building an online store focused mainly on high-end audio equipment. Its 
 - DJ controllers and setups.
 - Other related sound equipment and accessories.
 
-The store name is **DOBBY Audophile House**, chosen by Yunus on 5 November 2026.
+The store name is **DOBBY Audiophile House**, chosen by Yunus on 5 November 2026.
 
 This is a CS308 course project by Group 13. Course requirements and the teaching team's instructions remain the source of truth for assessed deliverables; this README explains our working plan.
 
@@ -111,7 +111,7 @@ The **project root** is the top-level folder containing this README. Framework-s
 
 | Item | Current documentation |
 | --- | --- |
-| Final store name | DOBBY Audophile House |
+| Final store name | DOBBY Audiophile House |
 | GitHub repository address | https://github.com/boracelikors/CS308-project |
 | Frontend framework and version | React 19.3.1 + Vite 8.3.5; JavaScript and plain CSS |
 | Backend framework and version | Express 5.3.0 (Node.js) |
@@ -157,7 +157,7 @@ git clone YOUR_REPOSITORY_URL
 
 ## 8. Installing and running the application
 
-The backend and frontend foundation can be started independently. The complete six-product demonstration still depends on SCRUM-6, SCRUM-7, SCRUM-9, and SCRUM-10.
+The backend and frontend start independently. The homepage needs both running to show the six products.
 
 ### Backend
 
@@ -192,15 +192,15 @@ The backend and frontend foundation can be started independently. The complete s
 3. **Install locked dependencies:** `npm ci`.
 4. **Start the development server:** `npm run dev`.
 5. **Expected output:** Vite prints `Local: http://localhost:5173/`.
-6. **Open:** http://localhost:5173. The homepage header and product section work without a backend; the collection currently shows a coming-soon state.
+6. **Open:** http://localhost:5173. The homepage requests `GET /products`: it shows `Loading products...` while waiting, the product cards on success, and `Products could not be loaded` if the request fails.
 7. **Stop:** press `Ctrl + C` in that terminal.
 8. **Check code and production build:** `npm run lint` and `npm run build`. To inspect the build, run `npm run preview` and open http://localhost:4173.
 
 The development port is fixed at 5173. If it is occupied, stop the other server or coordinate a port change with the team; Vite will not silently switch ports.
 
-**Integration handoff:** Bartu should allow `http://localhost:5173` as the frontend origin. The planned backend address is `http://localhost:3001`. `.env.example` documents `VITE_API_BASE_URL` for Bora's later integration; a different address can be set in `frontend/.env.local`. Only public configuration belongs in `VITE_` variables.
+`.env.example` documents `VITE_API_BASE_URL`; a different backend address can be set in `frontend/.env.local`. Only public configuration belongs in `VITE_` variables.
 
-Demirhan can add his product list inside `ProductSection` in `frontend/src/App.jsx`. Bora can then pass backend data to that list and add loading/error states. See [frontend/README.md](frontend/README.md) for the component locations.
+See [frontend/README.md](frontend/README.md) for the component locations.
 
 ### Running both parts together
 
@@ -209,7 +209,7 @@ Demirhan can add his product list inside `ProductSection` in `frontend/src/App.j
 3. Open a second terminal window.
 4. Start the frontend using its verified instructions.
 5. Open the frontend address in the browser.
-6. Once SCRUM-6, SCRUM-7, SCRUM-9, and SCRUM-10 are integrated, confirm that all six product cards appear; the SCRUM-8 foundation alone shows a coming-soon state.
+6. Confirm that all six product cards appear. Without a working GET /products the homepage shows `Products could not be loaded`.
 
 Never commit passwords, access tokens, or other private credentials. If configuration uses a private local file, document the needed variable names using a safe example file and exclude the real secrets from Git.
 
@@ -268,7 +268,7 @@ Example response shape, showing only one of the six records:
 
 Prices and product details are demonstration data, not verified retail offers. Use one currency consistently; the example does not finalize the team's currency decision.
 
-Hasan and Bora must agree where images live and how filenames map to frontend image paths. Use permitted images or placeholders.
+Product images live in `frontend/public/images/`. The `image` field holds the filename, and the card loads it from `/images/<filename>`.
 
 The frontend and backend may have different local addresses. Bartu must allow the agreed frontend origin to request the backend data; the browser mechanism controlling this is called **CORS**.
 

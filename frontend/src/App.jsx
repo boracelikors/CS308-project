@@ -1,7 +1,6 @@
 import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
-import ProductList from './components/ProductList.jsx'
-import sampleProducts from './data/sample-products.json'
+import ProductCatalog from './components/ProductCatalog.jsx'
 import './App.css'
 
 export default function App() {
@@ -26,11 +25,11 @@ export default function App() {
           </div>
         </section>
         <ProductSection>
-          <ProductList products={sampleProducts} />
+          <ProductCatalog />
         </ProductSection>
       </main>
       <footer className="site-footer">
-        <a className="footer-brand" href="#top">DOBBY Audophile House</a>
+        <a className="footer-brand" href="#top">DOBBY Audiophile House</a>
         <p>CS308 · Group 13</p>
       </footer>
     </>
