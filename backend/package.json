@@ -9,7 +9,8 @@
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "migrate:status": "knex migrate:status",
-    "migrate:test": "NODE_ENV=test knex migrate:latest"
+    "migrate:test": "NODE_ENV=test knex migrate:latest",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
