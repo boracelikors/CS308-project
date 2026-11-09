@@ -1,16 +1,38 @@
 const express = require("express");
 const cors = require("cors");
+
+// Load and validate backend/.env first; stop with a readable message if it is wrong
+let config;
+try {
+  config = require("./config");
+} catch (err) {
+  console.error(`Configuration error: ${err.message}`);
+  process.exit(1);
+}
+
+const { db, checkDatabase } = require("./db/knex");
 const products = require("./sample-products.json"); // Load the six sample products from Hasan's file
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || ["http://localhost:5173", "http://localhost:4173"]; // Vite dev server and preview
 
-app.use(cors({ origin: FRONTEND_ORIGIN })); // Only allow browser requests from our frontend
+// FRONTEND_ORIGIN may list several origins, comma-separated (Vite dev server and preview)
+const allowedOrigins = config.frontendOrigin.split(",").map((origin) => origin.trim());
+app.use(cors({ origin: allowedOrigins })); // Only allow browser requests from our frontend
 app.use(express.json());
 
+// Unchanged: the server process is up
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+// New: is the database reachable? Never exposes credentials.
+app.get("/health/db", async (req, res) => {
+  try {
+    await checkDatabase();
+    res.json({ status: "ok", database: "up" });
+  } catch {
+    res.status(503).json({ status: "error", database: "down" });
+  }
 });
 
 // Return all sample products as a JSON array
@@ -18,6 +40,24 @@ app.get("/products", (req, res) => {
   res.json(products);
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+const server = app.listen(config.port, async () => {
+  console.log(`Backend running on http://localhost:${config.port}`);
+  try {
+    await checkDatabase();
+    console.log(`Database ready (${config.db.database})`);
+  } catch (err) {
+    console.error(
+      `Database NOT reachable (${err.code || "unknown error"}). ` +
+        "Is MySQL running? Check the DB_* values in backend/.env."
+    );
+  }
 });
+
+// Close the HTTP server and the connection pool cleanly on Ctrl+C
+async function shutdown() {
+  server.close();
+  await db.destroy();
+  process.exit(0);
+}
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

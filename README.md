@@ -119,7 +119,7 @@ The **project root** is the top-level folder containing this README. Framework-s
 | Dependency/package manager | npm; frontend tested with npm 11.6.0 |
 | Backend development port | 3001 (implemented) |
 | Frontend development port | 5173; http://localhost:5173 (strict port) |
-| Database | Not required for the agreed basic Sprint 1 plan |
+| Database | MySQL (tested with 26.10.0) with Knex migrations; setup in [backend/DATABASE.md](backend/DATABASE.md) |
 | Hosting/deployment | Not specified in this plan |
 
 A **framework** provides common building blocks for an application. A **dependency** is a library the project needs, and a **runtime** is software that executes the application.
@@ -170,7 +170,7 @@ The backend and frontend start independently. The homepage needs both running to
    ```sh
    npm install
    ```
-4. **Configuration:** None required. The port defaults to `3001`; it can optionally be overridden with the `PORT` environment variable (e.g. `PORT=4000 npm run dev`).
+4. **Configuration and database (Sprint 2):** MySQL is required. Follow [backend/DATABASE.md](backend/DATABASE.md) once to create the databases, the `dobby_app` user and `backend/.env`, then run `npm run migrate`.
 5. **Start the development server** (auto-restarts on file changes):
    ```sh
    npm run dev
