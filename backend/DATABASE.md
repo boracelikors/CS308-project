@@ -48,8 +48,62 @@
 | `npm run migrate:status` | List applied and pending migrations |
 | `npm run migrate:rollback` | Undo the last migration batch (development only) |
 | `npx knex migrate:make <name>` | Create a new migration file in `db/migrations/` |
+| `npm run db:reset` | **Development only.** Drop all tables in `dobby_dev` and re-run every migration |
+| `npm run db:reset:test` | Same for `dobby_test` |
+| `npm run test:db` | Rebuild `dobby_test` from empty and run the schema constraint tests |
 
-Starting the server never runs migrations and never drops data.
+Starting the server never runs migrations and never drops data. `db:reset` deletes all local data and refuses to run unless the database name ends in `_dev` or `_test`.
+
+## Schema (SCRUM-20)
+
+Four migrations in `db/migrations/`, applied in order:
+
+| Migration | Tables |
+| --- | --- |
+| `20261110000001_create_users` | `users` |
+| `20261110000002_create_catalog` | `categories`, `products` |
+| `20261110000003_create_carts` | `carts`, `cart_items`, `cart_merge_requests` |
+| `20261110000004_create_orders` | `orders`, `order_items`, `checkout_requests` |
+
+```mermaid
+erDiagram
+    users ||--o| carts : owns
+    users ||--o{ orders : places
+    users ||--o{ checkout_requests : sends
+    users ||--o{ cart_merge_requests : sends
+    categories ||--o{ products : contains
+    carts ||--o{ cart_items : holds
+    products ||--o{ cart_items : "added as"
+    orders ||--|{ order_items : includes
+    products ||--o{ order_items : "sold as"
+    orders |o--o| checkout_requests : "result of"
+```
+
+### Design decisions
+
+| Decision | Why |
+| --- | --- |
+| Money is `DECIMAL(12,2)`, currency fixed to `TRY` by a CHECK | Exact prices (no float rounding); matches `cart/cartMath.js`, which works in kuruş. |
+| `users.role` is an ENUM of the four roles in `auth/guards.js` | One table, role-based guards; unknown roles are rejected by MySQL. |
+| Email stored lowercase and trimmed (CHECK) + unique index | `Ali@x.com` and `ali@x.com` cannot become two accounts. Registration already normalizes (`validateRegistration`). |
+| Customers must have `tax_id` and `home_address` (CHECK); staff may leave them empty | R10 customer fields without inventing data for managers. |
+| One cart per user; `(cart_id, product_id)` unique; `quantity > 0` | Adding the same product again updates the quantity. No totals stored: prices are always re-read from `products`. |
+| Guest carts stay in the browser | Merged after login; `cart_merge_requests (user_id, request_key)` is unique so a retried merge is applied once. |
+| `orders` stores `delivery_address`, `total_price`; `order_items` stores `product_name`, `product_model`, `unit_price` | Snapshots: editing a product price or profile address later never changes an existing order. |
+| Order status ENUM `processing → in_transit → delivered` with `in_transit_at` / `delivered_at` | R12/R14 statuses; `delivered_at` only allowed when delivered. Transitions are enforced by the API. |
+| `orders.payment_reference` (unique) and optional `payment_card_last4` | Mock payment only. Full card numbers and CVV are never stored (R17). |
+| `checkout_requests (customer_id, request_key)` unique, with `request_hash` and stored response | A double-submitted checkout returns the first result instead of a second order; same key + different body can be rejected. |
+| Products, customers and orders use `ON DELETE RESTRICT`; `products.is_active` (default true) | Ordered products and customers with orders cannot be deleted by accident. A product taken off sale is set `is_active = false` instead of deleted, so order history stays intact. Cart rows cascade with their cart. |
+| Plural table names (`users`, `orders`, ...) | `ORDER` is a reserved word in MySQL; plural names avoid quoting problems (Onur's review). |
+| `users.password_hash` is `VARCHAR(60)` | Exact length of a bcrypt hash from `auth/password.js` (SCRUM-22). |
+| `order_items.id` doubles as the delivery ID | The R12 delivery list is a join of `order_items` and `orders`; no duplicated delivery table to keep in sync. |
+| FULLTEXT index on `products(name, description)`; indexes on `price`, `category_id` | Search and sorting (R7). |
+
+Not included yet (owned by other tasks): session table (SCRUM-23), discounts/cost (sales manager, later sprint; the team still has to agree the kuruş rounding rule for discounted prices), reviews, refunds, wishlist, support chat. Each should be a new migration; never edit a migration that has been merged.
+
+### Constraint tests
+
+`npm run test:db` checks on an empty `dobby_test`: negative stock/price, other currencies, duplicate serial number, duplicate and non-normalized email, unknown role, customer without tax ID, cart quantity and uniqueness, request-key uniqueness, orphan order item, protected deletes, order snapshots after product/profile edits, status values and card last4 format.
 
 ## Health checks
 
@@ -80,4 +134,6 @@ Neither endpoint returns credentials or error details.
 - `knexfile.js`: Knex settings (development and test).
 - `db/knex.js`: shared connection pool and `checkDatabase()`.
 - `db/migrations/`, `db/seeds/`: schema changes and seed data (SCRUM-20 / SCRUM-21).
+- `db/reset-dev.js`: development-only reset used by `npm run db:reset`.
+- `db-tests/`: database tests that need MySQL (`npm run test:db`); kept out of `npm test`, which runs unit tests only.
 - Business queries live in route/service modules, not in server startup.
