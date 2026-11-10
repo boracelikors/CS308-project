@@ -50,6 +50,8 @@
 | `npx knex migrate:make <name>` | Create a new migration file in `db/migrations/` |
 | `npm run db:reset` | **Development only.** Drop all tables in `dobby_dev` and re-run every migration |
 | `npm run db:reset:test` | Same for `dobby_test` |
+| `npm run seed` | Load the demo catalogue into `dobby_dev` (safe to run again) |
+| `npm run seed:test` | Same for `dobby_test` |
 | `npm run test:db` | Rebuild `dobby_test` from empty and run the schema constraint tests |
 
 Starting the server never runs migrations and never drops data. `db:reset` deletes all local data and refuses to run unless the database name ends in `_dev` or `_test`.
@@ -101,9 +103,35 @@ erDiagram
 
 Not included yet (owned by other tasks): session table (SCRUM-23), discounts/cost (sales manager, later sprint; the team still has to agree the kuruş rounding rule for discounted prices), reviews, refunds, wishlist, support chat. Each should be a new migration; never edit a migration that has been merged.
 
-### Constraint tests
+## Seed data (SCRUM-21)
 
-`npm run test:db` checks on an empty `dobby_test`: negative stock/price, other currencies, duplicate serial number, duplicate and non-normalized email, unknown role, customer without tax ID, cart quantity and uniqueness, request-key uniqueness, orphan order item, protected deletes, order snapshots after product/profile edits, status values and card last4 format.
+`db/seeds/01_catalog.js` loads **6 categories and 14 products**. Everything is **fictional demo data**: serial numbers start with `DEMO-`, distributors end with "(fictional demo)", and prices are not real offers. No customer accounts or personal data are seeded.
+
+```sh
+npm run db:reset -- --seed   # fresh schema + catalogue (development only)
+npm run seed                 # or only (re)load the catalogue
+```
+
+Rows are upserted by fixed ID, so running the seed twice gives exactly the same catalogue with no duplicates. Products 1-6 are the Sprint 1 products from `sample-products.json` (same IDs, names, prices, images). Images reuse the six files in `frontend/public/images/`, one per category.
+
+### Fixture IDs for frontend and tests
+
+| ID | Product | Use it to test |
+| --- | --- | --- |
+| 7 | Compact Atmos 3.1.2 Soundbar | **Out of stock** (`quantity_in_stock = 0`): searchable but cannot be added to the cart |
+| 8 | Three-Way Floorstanding Towers (Pair) | **One item left**: the second unit must be refused |
+| 10 | 10-Inch Ported Subwoofer | **Fractional price** `18749.90` |
+| 7 and 9 | Soundbar / Studio Headphones | **Equal prices** `24990.00`: stable order when sorting by price |
+| 1 | Reference Bookshelf Monitors | Keyword **"beryllium"** appears only in the description, not in any name |
+| 11 / 8 | Broadcast Microphone / Towers | Cheapest (`9990.00`) and most expensive (`149900.00`) product |
+
+Categories: 1 Speakers, 2 Soundbars, 3 Subwoofers, 4 Microphones, 5 Headphones, 6 DJ Controllers.
+
+The data lives in MySQL, so it survives backend and MySQL restarts; only `db:reset` removes it.
+
+## Database tests
+
+`npm run test:db` checks on an empty `dobby_test` (schema and seed tests run one file at a time): negative stock/price, other currencies, duplicate serial number, duplicate and non-normalized email, unknown role, customer without tax ID, cart quantity and uniqueness, request-key uniqueness, orphan order item, protected deletes, order snapshots after product/profile edits, status values and card last4 format. Seed tests check: two runs give identical data, every product has all R9 fields, all six categories are used, Sprint 1 products are unchanged, every image file exists, and each fixture above is present.
 
 ## Health checks
 
