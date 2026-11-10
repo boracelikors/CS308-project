@@ -47,7 +47,9 @@ before(async () => {
   // Start from an empty schema every time
   await db.migrate.rollback(undefined, true);
   const [, applied] = await db.migrate.latest();
-  assert.equal(applied.length, 4);
+  // Every migration file is applied (new migrations are added in later tasks)
+  const files = require("node:fs").readdirSync(require("node:path").join(__dirname, "..", "db", "migrations"));
+  assert.equal(applied.length, files.filter((f) => f.endsWith(".js")).length);
 
   [customerId] = await db("users").insert(customer());
   await db("categories").insert({ id: 1, name: "Speakers" });
@@ -60,7 +62,7 @@ after(async () => {
 
 test("empty database migrates and has every core table", async () => {
   for (const table of ["users", "categories", "products", "carts", "cart_items",
-    "cart_merge_requests", "orders", "order_items", "checkout_requests"]) {
+    "cart_merge_requests", "orders", "order_items", "checkout_requests", "sessions"]) {
     assert.ok(await db.schema.hasTable(table), `${table} missing`);
   }
 });
