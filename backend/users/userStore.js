@@ -24,4 +24,14 @@ async function createUser(db, { name, email, passwordHash, role, taxId, homeAddr
   }
 }
 
-module.exports = { createUser };
+// Looks up an account for login. Returns null when the email is unknown.
+// The hash is returned only to the login code; it is never sent to the client.
+async function findUserByEmail(db, email) {
+  const row = await db("users")
+    .where({ email })
+    .first("id", "name", "email", "role", "password_hash");
+  if (!row) return null;
+  return { id: row.id, name: row.name, email: row.email, role: row.role, passwordHash: row.password_hash };
+}
+
+module.exports = { createUser, findUserByEmail };
