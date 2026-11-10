@@ -12,6 +12,8 @@ try {
 
 const { db, checkDatabase } = require("./db/knex");
 const products = require("./sample-products.json"); // Load the six sample products from Hasan's file
+const { createAuthRouter } = require("./auth/registerRoute");
+const { errorHandler } = require("./http/errorHandler");
 
 const app = express();
 
@@ -39,6 +41,12 @@ app.get("/health/db", async (req, res) => {
 app.get("/products", (req, res) => {
   res.json(products);
 });
+
+// POST /auth/register (SCRUM-22)
+app.use("/auth", createAuthRouter({ db }));
+
+// Must stay after all routes: unhandled errors become { error: { code, message } }
+app.use(errorHandler);
 
 const server = app.listen(config.port, async () => {
   console.log(`Backend running on http://localhost:${config.port}`);
