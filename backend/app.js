@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { createSessionMiddleware } = require("./auth/session");
 const { createAuthRouter } = require("./auth/authRoutes");
+const { createCartRouter } = require("./cart/cartRoutes");
 const { errorHandler } = require("./http/errorHandler");
 const products = require("./sample-products.json"); // Load the six sample products from Hasan's file
 
@@ -44,6 +45,9 @@ function createApp({ db, config, sessionStore }) {
 
   // POST /auth/register (SCRUM-22); POST /auth/login, POST /auth/logout, GET /auth/me (SCRUM-23)
   app.use("/auth", createAuthRouter({ db, secureCookie: config.isProduction }));
+
+  // GET /cart, POST /cart/items, PUT and DELETE /cart/items/:productId (SCRUM-28)
+  app.use("/cart", createCartRouter({ db }));
 
   // Must stay after all routes: unhandled errors become { error: { code, message } }
   app.use(errorHandler);
