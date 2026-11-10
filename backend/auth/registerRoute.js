@@ -1,10 +1,7 @@
 // POST /auth/register (SCRUM-22). Public; creates a customer account, does not log in.
-const express = require("express");
 const { validateRegistration } = require("./validateRegistration");
-const { hashPassword: realHashPassword } = require("./password");
-const { createUser: realCreateUser } = require("../users/userStore");
 
-// Dependencies are passed in so tests can replace the database and the slow bcrypt hash
+// Dependencies are passed in (see auth/authRoutes.js) so tests can replace the database and the slow bcrypt hash
 function createRegisterHandler({ createUser, hashPassword }) {
   return async function register(req, res, next) {
     const result = validateRegistration(req.body);
@@ -31,16 +28,4 @@ function createRegisterHandler({ createUser, hashPassword }) {
   };
 }
 
-function createAuthRouter({ db }) {
-  const router = express.Router();
-  router.post(
-    "/register",
-    createRegisterHandler({
-      createUser: (fields) => realCreateUser(db, fields),
-      hashPassword: realHashPassword,
-    })
-  );
-  return router;
-}
-
-module.exports = { createRegisterHandler, createAuthRouter };
+module.exports = { createRegisterHandler };

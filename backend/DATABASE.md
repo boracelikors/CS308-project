@@ -58,7 +58,7 @@ Starting the server never runs migrations and never drops data. `db:reset` delet
 
 ## Schema (SCRUM-20)
 
-Four migrations in `db/migrations/`, applied in order:
+Migrations in `db/migrations/`, applied in order:
 
 | Migration | Tables |
 | --- | --- |
@@ -66,6 +66,7 @@ Four migrations in `db/migrations/`, applied in order:
 | `20261110000002_create_catalog` | `categories`, `products` |
 | `20261110000003_create_carts` | `carts`, `cart_items`, `cart_merge_requests` |
 | `20261110000004_create_orders` | `orders`, `order_items`, `checkout_requests` |
+| `20261110000005_create_sessions` | `sessions` (login sessions, SCRUM-23) |
 
 ```mermaid
 erDiagram
@@ -101,7 +102,7 @@ erDiagram
 | `order_items.id` doubles as the delivery ID | The R12 delivery list is a join of `order_items` and `orders`; no duplicated delivery table to keep in sync. |
 | FULLTEXT index on `products(name, description)`; indexes on `price`, `category_id` | Search and sorting (R7). |
 
-Not included yet (owned by other tasks): session table (SCRUM-23), discounts/cost (sales manager, later sprint; the team still has to agree the kuruş rounding rule for discounted prices), reviews, refunds, wishlist, support chat. Each should be a new migration; never edit a migration that has been merged.
+Not included yet (owned by other tasks): discounts/cost (sales manager, later sprint; the team still has to agree the kuruş rounding rule for discounted prices), reviews, refunds, wishlist, support chat. Each should be a new migration; never edit a migration that has been merged.
 
 ## Seed data (SCRUM-21)
 
