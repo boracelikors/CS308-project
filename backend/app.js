@@ -4,10 +4,13 @@ const cors = require("cors");
 const { createSessionMiddleware } = require("./auth/session");
 const { createAuthRouter } = require("./auth/authRoutes");
 const { createCartRouter } = require("./cart/cartRoutes");
+const { createCheckoutRouter } = require("./checkout/checkoutRoutes");
+const { createMockBank } = require("./payment/mockBank");
 const { errorHandler } = require("./http/errorHandler");
 const products = require("./sample-products.json"); // Load the six sample products from Hasan's file
 
-function createApp({ db, config, sessionStore }) {
+// bank defaults to the test-only mock bank; tests may pass their own
+function createApp({ db, config, sessionStore, bank = createMockBank(), checkoutHooks = {} }) {
   const app = express();
 
   // FRONTEND_ORIGIN may list several origins, comma-separated (Vite dev server and preview)
@@ -48,6 +51,9 @@ function createApp({ db, config, sessionStore }) {
 
   // GET /cart, POST /cart/items, PUT and DELETE /cart/items/:productId (SCRUM-28)
   app.use("/cart", createCartRouter({ db }));
+
+  // POST /checkout with mock (test) payment (SCRUM-34)
+  app.use("/checkout", createCheckoutRouter({ db, bank, hooks: checkoutHooks }));
 
   // Must stay after all routes: unhandled errors become { error: { code, message } }
   app.use(errorHandler);
