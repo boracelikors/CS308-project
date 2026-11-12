@@ -1,7 +1,7 @@
 // The two cart back ends behind one interface: load, add, setQuantity, remove.
 // Each method resolves with a cart view { items, subtotal, currency } (the GET /cart shape)
 // or rejects with a CartActionError (guest rules) or an ApiError (server).
-import { apiRequest } from '../api/request.js'
+import { API_BASE_URL, apiRequest } from '../api/request.js'
 import {
   CartActionError,
   addLine,
@@ -13,10 +13,22 @@ import {
 } from './cartLogic.js'
 import { browserStorage, loadGuestCart, saveGuestCart } from './guestCartStorage.js'
 
-const fetchProducts = () => apiRequest('/products')
+// GET /products is paginated by the catalogue API (SCRUM-24): at most 50 per page, with the
+// page count in the X-Total-Pages header. Without that header (Sprint 1 API) one call returns all.
+export async function fetchProducts({ fetch: fetchImpl = fetch, maxPages = 20 } = {}) {
+  const products = []
+  for (let page = 1; page <= maxPages; page += 1) {
+    const response = await fetchImpl(`${API_BASE_URL}/products?page=${page}&pageSize=50`)
+    if (!response.ok) throw new Error(`GET /products responded with ${response.status}`)
+    products.push(...(await response.json()))
+    const totalPages = Number(response.headers.get('X-Total-Pages'))
+    if (!Number.isInteger(totalPages) || page >= totalPages) break
+  }
+  return products
+}
 
 // Guest: lines live in localStorage; prices and stock come from a fresh GET /products.
-export function createGuestCart({ storage = browserStorage(), loadProducts = fetchProducts } = {}) {
+export function createGuestCart({ storage = browserStorage(), loadProducts = () => fetchProducts() } = {}) {
   let lines = loadGuestCart(storage)
   let productsById = null
 
