@@ -3,6 +3,7 @@ import ProductSection from './components/ProductSection.jsx'
 import ProductCatalog from './components/ProductCatalog.jsx'
 import CartProvider from './cart/CartProvider.jsx'
 import ProductDetailPage from './pages/ProductDetailPage.jsx'
+import CartPage from './pages/CartPage.jsx'
 import { handleLinkClick, useRouter } from './router/router.js'
 import './App.css'
 
@@ -18,6 +19,8 @@ export default function App() {
         <main id="main">
           {route.name === 'product-detail' ? (
             <ProductDetailPage productId={route.params.id} />
+          ) : route.name === 'cart' ? (
+            <CartPage />
           ) : route.name === 'not-found' ? (
             <div className="product-detail-page">
               <div className="product-not-found" role="alert">
