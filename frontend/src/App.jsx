@@ -1,11 +1,13 @@
 import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
 import ProductCatalog from './components/ProductCatalog.jsx'
+import CartProvider from './cart/CartProvider.jsx'
 import './App.css'
 
 export default function App() {
+  // No login screen yet: everyone shops as a guest. Pass the GET /auth/me user here once it exists.
   return (
-    <>
+    <CartProvider user={null}>
       <a className="skip-link" href="#main">Skip to content</a>
       <Header />
       <main id="main">
@@ -32,6 +34,6 @@ export default function App() {
         <a className="footer-brand" href="#top">DOBBY Audiophile House</a>
         <p>CS308 · Group 13</p>
       </footer>
-    </>
+    </CartProvider>
   )
 }
