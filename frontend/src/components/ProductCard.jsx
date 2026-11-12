@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useCart } from '../cart/cartContext.js'
+import { formatPrice } from '../utils/formatPrice.js'
 
 /**
  * Audio category visual icons for placeholder and card artwork
@@ -68,7 +69,6 @@ function CategoryIcon({ category }) {
     )
   }
 
-  // Default soundwave icon
   return (
     <svg className="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M2 12h3l3-8 4 16 3-10 2 5 3-3h4" />
@@ -77,10 +77,9 @@ function CategoryIcon({ category }) {
 }
 
 /**
- * Reusable Product Card Component (SCRUM-9)
- *
- * Props:
- *  - product: Object containing { id, name, category, price, currency, description, image }
+ * Reusable Product Card Component (SCRUM-9, SCRUM-25, SCRUM-30).
+ * Displays full product details, exact decimal formatted price, and stock indicators.
+ * Zero-stock products remain visible with disabled purchase action.
  */
 export default function ProductCard({ product }) {
   const [imageError, setImageError] = useState(false)
@@ -91,41 +90,43 @@ export default function ProductCard({ product }) {
     return null
   }
 
-  const { name, category, price, currency = 'TRY', description, image } = product
-
-  // Format price without rounding (preserves exact decimals e.g. 1999.99 -> 1.999,99)
-  const formatPrice = (value) => {
-    if (value === null || value === undefined) return ''
-    const num = typeof value === 'number'
-      ? value
-      : (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value)) ? Number(value) : null)
-
-    if (num !== null) {
-      return new Intl.NumberFormat('tr-TR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 20,
-      }).format(num)
-    }
-    return value
-  }
+  const { id, name, category, price, currency = 'TRY', description, image } = product
 
   const formattedPrice = formatPrice(price)
 
-  // Only known when the product data includes stock; the server checks it again either way
-  const soldOut = typeof product.stock === 'number' && product.stock <= 0
+  // Stock status checks from backend fields (quantityInStock, inStock, stock)
+  const isOutOfStock =
+    product.inStock === false ||
+    (typeof product.quantityInStock === 'number' && product.quantityInStock <= 0) ||
+    (typeof product.stock === 'number' && product.stock <= 0)
+
+  const stockCount =
+    typeof product.quantityInStock === 'number'
+      ? product.quantityInStock
+      : typeof product.stock === 'number'
+        ? product.stock
+        : null
+
+  const isLowStock = !isOutOfStock && stockCount !== null && stockCount > 0 && stockCount <= 3
 
   async function handleAddToCart() {
-    const result = await cart.add(product.id)
+    if (isOutOfStock) return
+    const result = await cart.add(id)
     setCartMessage(result.ok ? 'Added to cart' : result.message)
   }
 
   const imageSrc = image
-    ? (image.startsWith('http') || image.startsWith('/') ? image : `/images/${image}`)
+    ? image.startsWith('http') || image.startsWith('/')
+      ? image
+      : `/images/${image}`
     : null
 
   return (
-    <article className="product-card" aria-label={name}>
-      {/* 4. Image area with fallback placeholder */}
+    <article
+      className={`product-card ${isOutOfStock ? 'product-card--out-of-stock' : ''}`}
+      aria-label={`${name} - ${formattedPrice} ${currency}${isOutOfStock ? ' (Out of stock)' : ''}`}
+    >
+      {/* Image area with fallback placeholder and badges */}
       <div className="product-card-image-wrap">
         {imageSrc && !imageError ? (
           <img
@@ -141,21 +142,42 @@ export default function ProductCard({ product }) {
             <span className="placeholder-category">{category || 'Audio'}</span>
           </div>
         )}
-        {category && <span className="product-card-badge">{category}</span>}
+
+        <div className="product-card-badges">
+          {category && <span className="product-card-badge">{category}</span>}
+          {isOutOfStock && (
+            <span className="product-stock-badge product-stock-badge--out">Out of stock</span>
+          )}
+          {isLowStock && (
+            <span className="product-stock-badge product-stock-badge--low">
+              Only {stockCount} left
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Card Details */}
       <div className="product-card-details">
-        {/* 5. Product name below the image */}
         <h3 className="product-card-name" title={name}>
-          {name}
+          <a href={`/products/${id}`} className="product-card-link">
+            {name}
+          </a>
         </h3>
 
-        {description && (
-          <p className="product-card-description">{description}</p>
-        )}
+        {description && <p className="product-card-description">{description}</p>}
 
-        {/* 6. Price below the name */}
+        {/* Stock status announcement */}
+        <div className="product-card-stock-status">
+          {isOutOfStock ? (
+            <span className="stock-label stock-label--out">Out of stock</span>
+          ) : stockCount !== null ? (
+            <span className="stock-label stock-label--available">
+              {isLowStock ? `Low stock (${stockCount} left)` : 'In stock'}
+            </span>
+          ) : null}
+        </div>
+
+        {/* Price display with exact formatting */}
         <div className="product-card-price-row">
           <span className="product-card-price">
             {formattedPrice} <span className="currency">{currency}</span>
@@ -166,11 +188,14 @@ export default function ProductCard({ product }) {
           type="button"
           className="add-to-cart"
           onClick={handleAddToCart}
-          disabled={soldOut || cart.status === 'loading'}
+          disabled={isOutOfStock || cart.status === 'loading'}
+          aria-label={isOutOfStock ? `${name} is out of stock` : `Add ${name} to cart`}
         >
-          {soldOut ? 'Out of stock' : 'Add to cart'}
+          {isOutOfStock ? 'Out of stock' : 'Add to cart'}
         </button>
-        <p className="add-to-cart-message" role="status">{cartMessage}</p>
+        <p className="add-to-cart-message" role="status">
+          {cartMessage}
+        </p>
       </div>
     </article>
   )
