@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CartContext } from './cartContext.js'
 import { createGuestCart, createServerCart } from './cartAdapters.js'
-import { CartActionError } from './cartLogic.js'
 
 const EMPTY_VIEW = { items: [], subtotal: '0.00', currency: null }
 const LOADING = { status: 'loading', view: EMPTY_VIEW, error: null }
@@ -12,8 +11,9 @@ function accountKeyFor(user) {
   return user?.role === 'customer' ? `customer:${user.id}` : 'guest'
 }
 
+// CartActionError (guest rules) and ApiError (server) both carry a code and message
 function toCartError(error) {
-  if (error instanceof CartActionError) {
+  if (typeof error?.code === 'string') {
     const { code, message, available } = error
     return available === undefined ? { code, message } : { code, message, available }
   }
