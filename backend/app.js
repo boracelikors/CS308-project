@@ -6,12 +6,13 @@ const { createAuthRouter } = require("./auth/authRoutes");
 const { createCartRouter } = require("./cart/cartRoutes");
 const { errorHandler } = require("./http/errorHandler");
 const { createProductRouter, PAGINATION_HEADERS } = require("./products/productRoutes");
+
 function createApp({ db, config, sessionStore }) {
   const app = express();
 
   // FRONTEND_ORIGIN may list several origins, comma-separated (Vite dev server and preview)
   const allowedOrigins = config.frontendOrigin.split(",").map((origin) => origin.trim());
-  
+  // credentials: true lets the frontend send the login cookie with fetch(..., { credentials: "include" })
   // exposedHeaders: browsers hide custom response headers from JavaScript unless they are listed here
   app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: PAGINATION_HEADERS }));
   app.use(express.json());
