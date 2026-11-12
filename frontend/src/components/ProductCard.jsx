@@ -128,20 +128,22 @@ export default function ProductCard({ product }) {
     >
       {/* Image area with fallback placeholder and badges */}
       <div className="product-card-image-wrap">
-        {imageSrc && !imageError ? (
-          <img
-            src={imageSrc}
-            alt={name}
-            className="product-card-image"
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="product-card-placeholder" aria-hidden="true">
-            <CategoryIcon category={category} />
-            <span className="placeholder-category">{category || 'Audio'}</span>
-          </div>
-        )}
+        <a href={`/products/${id}`} className="product-card-image-link" aria-label={`View details for ${name}`}>
+          {imageSrc && !imageError ? (
+            <img
+              src={imageSrc}
+              alt={name}
+              className="product-card-image"
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="product-card-placeholder" aria-hidden="true">
+              <CategoryIcon category={category} />
+              <span className="placeholder-category">{category || 'Audio'}</span>
+            </div>
+          )}
+        </a>
 
         <div className="product-card-badges">
           {category && <span className="product-card-badge">{category}</span>}
