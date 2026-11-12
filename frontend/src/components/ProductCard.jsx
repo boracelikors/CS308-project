@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useCart } from '../cart/cartContext.js'
-import { stockOf } from '../cart/cartLogic.js'
 
 /**
  * Audio category visual icons for placeholder and card artwork
@@ -113,8 +112,7 @@ export default function ProductCard({ product }) {
   const formattedPrice = formatPrice(price)
 
   // Only known when the product data includes stock; the server checks it again either way
-  const stock = stockOf(product)
-  const soldOut = stock !== null && stock <= 0
+  const soldOut = typeof product.stock === 'number' && product.stock <= 0
 
   async function handleAddToCart() {
     const result = await cart.add(product.id)
