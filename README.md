@@ -308,6 +308,31 @@ Success: `201 { "order": { id, status: "processing", createdAt, inTransitAt, del
 
 Code: `backend/checkout/` (validation, service, route) and `backend/payment/mockBank.js`. Tests: `npm test` and `npm run test:db` (`db-tests/checkoutFlow.spec.js`).
 
+### Orders and deliveries
+
+**Status:** Implemented (SCRUM-35), using the shapes proposed by the frontend in SCRUM-39 (`frontend/src/orders/ordersApi.js`). All rules are enforced on the server; the customer ID always comes from the login session.
+
+| Endpoint | Who | Response |
+| --- | --- | --- |
+| `GET /orders` | Customer | `200 { orders: [{ id, createdAt, total, currency, status }] }`, newest first; `{ orders: [] }` when there are none |
+| `GET /orders/:id` | Customer | `200 { order }` in the same shape as the checkout response (`inTransitAt`, `deliveredAt`, `items[].productName`, `productModel`, purchase-time `unitPrice`). `404 ORDER_NOT_FOUND` for a missing order **and** for another customer's order |
+| `GET /deliveries` | Product manager | `200 { deliveries: [{ deliveryId, orderId, customerId, productId, productName, quantity, totalPrice, currency, deliveryAddress, status, completed, orderedAt }] }`, one row per order item (R12). Optional `?status=processing|in_transit|delivered` |
+| `PATCH /orders/:id/status` | Product manager | Body `{ "status": "in_transit" }` or `{ "status": "delivered" }`. Returns `200 { order }` and records `inTransitAt` / `deliveredAt` |
+
+- Status moves only one step forward: `processing → in_transit → delivered`. Skipping, going back or repeating a step returns `409 INVALID_STATUS_TRANSITION` with `error.currentStatus`.
+- Guests get `401`; logged-in users with another role get `403`. A customer cannot change any status, including their own order.
+- The delivery list shows only the fields R12 needs: no customer name, email or tax ID.
+
+**Trying it before the manager dashboard exists:** `npm run seed` creates a development-only product manager (`pm@dobby.test` / `DemoManager2026`, see `backend/DATABASE.md`). Example with curl:
+
+```sh
+curl -c pm.txt -H "Content-Type: application/json" -d '{"email":"pm@dobby.test","password":"DemoManager2026"}' http://localhost:3001/auth/login
+curl -b pm.txt http://localhost:3001/deliveries
+curl -b pm.txt -X PATCH -H "Content-Type: application/json" -d '{"status":"in_transit"}' http://localhost:3001/orders/1/status
+```
+
+Code: `backend/orders/`. Tests: `npm test` (`test/orderRoutes.test.js`) and `npm run test:db` (`db-tests/ordersFlow.spec.js`).
+
 ## 10. In what order should we work?
 
 1. **Onur** creates the backend foundation.
