@@ -44,6 +44,14 @@ export function countItems(lines) {
   return lines.reduce((sum, line) => sum + line.quantity, 0)
 }
 
+// Units in stock, or null when the product data does not say. The catalogue API (SCRUM-24)
+// sends quantityInStock; stock is the older/fixture name, read the same way as ProductCard.
+export function stockOf(product) {
+  if (typeof product?.quantityInStock === 'number') return product.quantityInStock
+  if (typeof product?.stock === 'number') return product.stock
+  return null
+}
+
 // Same codes and messages as the backend (cart/cartMath.js validateQuantity).
 // stock is only checked when the product data includes it.
 export function checkQuantity(quantity, product) {
@@ -56,8 +64,8 @@ export function checkQuantity(quantity, product) {
       `Quantity must be a whole number from 1 to ${MAX_LINE_QUANTITY}.`,
     )
   }
-  const stock = product.stock
-  if (typeof stock !== 'number') return
+  const stock = stockOf(product)
+  if (stock === null) return
   if (stock <= 0) {
     throw new CartActionError('OUT_OF_STOCK', 'This product is out of stock.')
   }
@@ -98,9 +106,10 @@ export function formatMinorUnits(minor) {
 // Why a line cannot be bought right now, or null (same codes as backend lineProblem)
 function lineProblem(product, unitMinor, quantity) {
   if (!product || unitMinor === null) return 'UNAVAILABLE'
-  if (typeof product.stock !== 'number') return null
-  if (product.stock <= 0) return 'OUT_OF_STOCK'
-  if (quantity > product.stock) return 'INSUFFICIENT_STOCK'
+  const stock = stockOf(product)
+  if (stock === null) return null
+  if (stock <= 0) return 'OUT_OF_STOCK'
+  if (quantity > stock) return 'INSUFFICIENT_STOCK'
   return null
 }
 
@@ -127,7 +136,7 @@ export function buildCartView(lines, productsById) {
       currency: product ? (product.currency ?? 'TRY') : null,
       quantity,
       lineTotal: lineMinor === null ? null : formatMinorUnits(lineMinor),
-      stock: typeof product?.stock === 'number' ? product.stock : null,
+      stock: stockOf(product),
       problem,
     }
   })
