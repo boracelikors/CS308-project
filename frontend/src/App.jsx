@@ -2,6 +2,7 @@ import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
 import ProductCatalog from './components/ProductCatalog.jsx'
 import CartProvider from './cart/CartProvider.jsx'
+import MergeNotice from './cart/MergeNotice.jsx'
 import './App.css'
 
 export default function App() {
@@ -10,6 +11,7 @@ export default function App() {
     <CartProvider user={null}>
       <a className="skip-link" href="#main">Skip to content</a>
       <Header />
+      <MergeNotice />
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-copy">

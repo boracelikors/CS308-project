@@ -78,7 +78,7 @@ export function createServerCart({ request = apiRequest } = {}) {
 
     // PROPOSED contract, to confirm with SCRUM-32 (not implemented in the backend yet):
     //   POST /cart/merge { requestKey, items: [{ productId, quantity }] }
-    //   200 { cart, adjustments: [{ productId, requested, applied, reason }] }
+    //   200 { cart, adjustments: [{ productId, name, requested, applied, reason }] }
     //   The same key with the same body returns the first result again.
     merge: (requestKey, items) => request('/cart/merge', { method: 'POST', body: { requestKey, items } }),
   }
