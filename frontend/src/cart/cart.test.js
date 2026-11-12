@@ -1,7 +1,7 @@
 // Guest cart unit tests. Run with: npm test
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { createGuestCart } from './cartAdapters.js'
+import { createGuestCart, fetchProducts } from './cartAdapters.js'
 import {
   CartActionError,
   addLine,
@@ -164,6 +164,31 @@ describe('guest cart adapter', () => {
     const view = await guestCart().add(2, 5)
     assert.equal(view.items[0].stock, null)
     assert.equal(view.items[0].problem, null)
+  })
+
+  it('reads quantityInStock from the catalogue API', async () => {
+    const products = [{ id: 3, name: 'Amp', price: '9990.00', currency: 'TRY', quantityInStock: 2, inStock: true }]
+    const cart = guestCart(memoryStorage(), products)
+    assert.equal((await cart.add(3, 2)).items[0].stock, 2)
+    await assert.rejects(cart.add(3), { code: 'INSUFFICIENT_STOCK', available: 2 })
+  })
+
+  it('loads every page of the paginated catalogue', async () => {
+    const urls = []
+    const page = (items, totalPages) => ({
+      ok: true,
+      json: async () => items,
+      headers: { get: (name) => (name === 'X-Total-Pages' ? totalPages : null) },
+    })
+    const paged = async (url) => {
+      urls.push(url)
+      return url.includes('page=1&') ? page([{ id: 1 }], '2') : page([{ id: 51 }], '2')
+    }
+    assert.deepEqual((await fetchProducts({ fetch: paged })).map((p) => p.id), [1, 51])
+    assert.equal(urls.length, 2)
+
+    const unpaged = async () => page([{ id: 1 }, { id: 2 }], null) // Sprint 1 API: no header
+    assert.equal((await fetchProducts({ fetch: unpaged })).length, 2)
   })
 
   it('retries loading products after a failed request', async () => {
