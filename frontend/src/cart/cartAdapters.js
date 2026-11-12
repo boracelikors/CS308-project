@@ -1,6 +1,6 @@
 // The two cart back ends behind one interface: load, add, setQuantity, remove.
 // Each method resolves with a cart view { items, subtotal, currency } (the GET /cart shape)
-// or rejects with a CartActionError.
+// or rejects with a CartActionError (guest rules) or an ApiError (server).
 import { apiRequest } from '../api/request.js'
 import {
   CartActionError,
@@ -75,5 +75,11 @@ export function createServerCart({ request = apiRequest } = {}) {
     setQuantity: (productId, quantity) =>
       cartOf(request(`/cart/items/${productId}`, { method: 'PUT', body: { quantity } })),
     remove: (productId) => cartOf(request(`/cart/items/${productId}`, { method: 'DELETE' })),
+
+    // PROPOSED contract, to confirm with SCRUM-32 (not implemented in the backend yet):
+    //   POST /cart/merge { requestKey, items: [{ productId, quantity }] }
+    //   200 { cart, adjustments: [{ productId, requested, applied, reason }] }
+    //   The same key with the same body returns the first result again.
+    merge: (requestKey, items) => request('/cart/merge', { method: 'POST', body: { requestKey, items } }),
   }
 }
