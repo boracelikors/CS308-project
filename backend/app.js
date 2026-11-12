@@ -5,15 +5,15 @@ const { createSessionMiddleware } = require("./auth/session");
 const { createAuthRouter } = require("./auth/authRoutes");
 const { createCartRouter } = require("./cart/cartRoutes");
 const { errorHandler } = require("./http/errorHandler");
-const products = require("./sample-products.json"); // Load the six sample products from Hasan's file
-
+const { createProductRouter, PAGINATION_HEADERS } = require("./products/productRoutes");
 function createApp({ db, config, sessionStore }) {
   const app = express();
 
   // FRONTEND_ORIGIN may list several origins, comma-separated (Vite dev server and preview)
   const allowedOrigins = config.frontendOrigin.split(",").map((origin) => origin.trim());
-  // credentials: true lets the frontend send the login cookie with fetch(..., { credentials: "include" })
-  app.use(cors({ origin: allowedOrigins, credentials: true }));
+  
+  // exposedHeaders: browsers hide custom response headers from JavaScript unless they are listed here
+  app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: PAGINATION_HEADERS }));
   app.use(express.json());
   app.use(
     createSessionMiddleware({
@@ -38,10 +38,8 @@ function createApp({ db, config, sessionStore }) {
     }
   });
 
-  // Return all sample products as a JSON array
-  app.get("/products", (req, res) => {
-    res.json(products);
-  });
+  // GET /products (search, category filter, sort, pagination) and GET /products/:id, from MySQL
+  app.use("/products", createProductRouter({ db }));
 
   // POST /auth/register (SCRUM-22); POST /auth/login, POST /auth/logout, GET /auth/me (SCRUM-23)
   app.use("/auth", createAuthRouter({ db, secureCookie: config.isProduction }));
