@@ -107,3 +107,23 @@ describe('checkout attempt', () => {
     assert.deepEqual(phases, ['submitting', 'succeeded'])
   })
 })
+
+it('persists only the key before sending and keeps it for an uncertain result', async () => {
+  const events = [];
+  const checkout = createCheckoutAttempt({
+    newRequestKey: () => 'durable-key',
+    remember: key => events.push(['remember', key]),
+    forget: () => events.push(['forget']),
+    submitRequest: async () => { events.push(['send']); throw new ApiError('NETWORK_ERROR', 'offline') },
+  });
+  await checkout.submit(BODY);
+  assert.deepEqual(events, [['remember', 'durable-key'], ['send']]);
+  assert.equal(checkout.getState().phase, 'uncertain');
+});
+it('refuses to send when recovery storage is unavailable', async () => {
+  let sent = false;
+  const checkout = createCheckoutAttempt({remember: () => { throw new Error('quota') }, submitRequest: async () => {sent = true}});
+  await checkout.submit(BODY);
+  assert.equal(sent, false);
+  assert.equal(checkout.getState().phase, 'invalid');
+});
