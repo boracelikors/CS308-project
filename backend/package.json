@@ -9,13 +9,16 @@
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "migrate:status": "knex migrate:status",
-    "migrate:test": "NODE_ENV=test knex migrate:latest",
-    "test": "node --test",
-    "test:db": "NODE_ENV=test node --test --test-concurrency=1 db-tests/*.spec.js",
+    "migrate:test": "cross-env NODE_ENV=test knex migrate:latest",
+    "test": "node --test \"test/*.test.js\"",
+    "pretest:db": "cross-env NODE_ENV=test node db-tests/clean.js",
+    "test:db": "cross-env NODE_ENV=test node --test --test-concurrency=1 \"db-tests/*.spec.js\"",
     "db:reset": "node db/reset-dev.js",
-    "db:reset:test": "NODE_ENV=test node db/reset-dev.js",
+    "db:reset:test": "cross-env NODE_ENV=test node db/reset-dev.js",
     "seed": "knex seed:run",
-    "seed:test": "NODE_ENV=test knex seed:run"
+    "seed:test": "cross-env NODE_ENV=test knex seed:run",
+     "test:count": "node ../scripts/count-tests.js"
+
   },
   "keywords": [],
   "author": "",
@@ -31,6 +34,7 @@
     "mysql2": "^3.24.6"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.14"
   }
 }

@@ -19,7 +19,12 @@ if (missing.length > 0) {
       "Copy backend/.env.example to backend/.env and fill in the values."
   );
 }
-
+// Database tests reset every table: refuse to start them against a non-test database
+if (isTest) {
+  const { testDatabaseProblem } = require("./db/testDatabaseGuard");
+  const problem = testDatabaseProblem({ dbName: process.env.DB_NAME, testDbName: process.env.DB_NAME_TEST });
+  if (problem) throw new Error(problem);
+}
 const dbPort = Number(process.env.DB_PORT);
 if (!Number.isInteger(dbPort) || dbPort <= 0) {
   throw new Error("DB_PORT must be a positive integer (MySQL default is 3306).");

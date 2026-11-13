@@ -140,6 +140,8 @@ Categories: 1 Speakers, 2 Soundbars, 3 Subwoofers, 4 Microphones, 5 Headphones, 
 The data lives in MySQL, so it survives backend and MySQL restarts; only `db:reset` removes it.
 
 ## Database tests
+   How to run all tests, where a new test belongs and what CI checks: [TESTING.md](TESTING.md).
+   
 
 `npm run test:db` checks on an empty `dobby_test` (schema and seed tests run one file at a time): negative stock/price, other currencies, duplicate serial number, duplicate and non-normalized email, unknown role, customer without tax ID, cart quantity and uniqueness, request-key uniqueness, orphan order item, protected deletes, order snapshots after product/profile edits, status values and card last4 format. Seed tests check: two runs give identical data, every product has all R9 fields, all six categories are used, Sprint 1 products are unchanged, every image file exists, and each fixture above is present.
 
