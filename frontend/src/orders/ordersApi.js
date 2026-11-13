@@ -1,6 +1,6 @@
 import { apiRequest } from '../api/request.js'
 
-// PROPOSED contract, to confirm with SCRUM-35 (not implemented in the backend yet):
+// Order endpoints (SCRUM-35, backend PR #23):
 //   GET /orders       (customer session) -> 200 { orders: [{ id, createdAt, total, currency, status }] }, newest first
 //   GET /orders/:id   -> 200 { order: { id, createdAt, status, inTransitAt, deliveredAt, total, currency,
 //                                deliveryAddress,

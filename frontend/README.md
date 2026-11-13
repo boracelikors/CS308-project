@@ -26,13 +26,15 @@ Open http://localhost:5173. Products come from the backend's `GET /products`.
 
 ## Waiting on other tasks
 
-Pages are not routed yet: `CheckoutPage`, `OrderHistoryPage` and `OrderDetailPage` are mounted once SCRUM-18 adds routes, and receive the signed-in `user` from SCRUM-26/27. Three endpoints follow **proposed** contracts, documented next to the code, until the backend tasks confirm them:
+Pages are not routed yet: `CheckoutPage`, `OrderHistoryPage` and `OrderDetailPage` are mounted once SCRUM-18 adds routes, and receive the signed-in `user` from SCRUM-26/27. The invoice PDF download and the email status come with SCRUM-36.
+
+The backend endpoints use the shapes first proposed here; the code next to each call documents them:
 
 | Endpoint | Code | Backend task |
 | --- | --- | --- |
-| `POST /cart/merge` | `src/cart/cartAdapters.js` | SCRUM-32 |
-| `POST /checkout` | `src/checkout/checkoutApi.js` | SCRUM-34 |
-| `GET /orders`, `GET /orders/:id` | `src/orders/ordersApi.js` | SCRUM-35 |
+| `POST /cart/merge` | `src/cart/cartAdapters.js` | SCRUM-32 (PR #25) |
+| `POST /checkout` | `src/checkout/checkoutApi.js` | SCRUM-34 (PR #22) |
+| `GET /orders`, `GET /orders/:id` | `src/orders/ordersApi.js` | SCRUM-35 (PR #23) |
 
 ## Checks
 
