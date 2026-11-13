@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useCart } from '../cart/cartContext.js'
 
 /**
  * Audio category visual icons for placeholder and card artwork
@@ -83,6 +84,8 @@ function CategoryIcon({ category }) {
  */
 export default function ProductCard({ product }) {
   const [imageError, setImageError] = useState(false)
+  const [cartMessage, setCartMessage] = useState('')
+  const cart = useCart()
 
   if (!product) {
     return null
@@ -107,6 +110,14 @@ export default function ProductCard({ product }) {
   }
 
   const formattedPrice = formatPrice(price)
+
+  // Only known when the product data includes stock; the server checks it again either way
+  const soldOut = typeof product.stock === 'number' && product.stock <= 0
+
+  async function handleAddToCart() {
+    const result = await cart.add(product.id)
+    setCartMessage(result.ok ? 'Added to cart' : result.message)
+  }
 
   const imageSrc = image
     ? (image.startsWith('http') || image.startsWith('/') ? image : `/images/${image}`)
@@ -150,6 +161,16 @@ export default function ProductCard({ product }) {
             {formattedPrice} <span className="currency">{currency}</span>
           </span>
         </div>
+
+        <button
+          type="button"
+          className="add-to-cart"
+          onClick={handleAddToCart}
+          disabled={soldOut || cart.status === 'loading'}
+        >
+          {soldOut ? 'Out of stock' : 'Add to cart'}
+        </button>
+        <p className="add-to-cart-message" role="status">{cartMessage}</p>
       </div>
     </article>
   )

@@ -1,5 +1,5 @@
 export class ApiError extends Error {
-  constructor(status, error = {}) { super(error.message || 'The service is unavailable. Please try again.'); this.status = status; this.fields = error.fields || {}; this.code = error.code }
+  constructor(status, error = {}) { super(error.message || 'The service is unavailable. Please try again.'); this.status = status; this.fields = error.fields || {}; this.code = error.code; this.available = error.available }
 }
 export async function api(path, { body, ...options } = {}) {
   let response

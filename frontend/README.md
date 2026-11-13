@@ -16,12 +16,14 @@ Open http://localhost:5173. Products come from the backend's `GET /products`.
 - `src/components/ProductCatalog.jsx`: requests the products and shows the list, loading or error state.
 - `src/components/ProductSection.jsx`: accessible product section and an honest empty state. The `children` slot is for Demirhan's product list (SCRUM-9).
 - `src/App.css`: starter styling; Bora can extend it in SCRUM-10.
+- `src/cart/`: the shared cart. Components call `useCart()` (from `cartContext.js`, interface documented there) and never touch storage or the API directly. Guests use a versioned `localStorage` cart holding only product IDs and quantities; logged-in customers use the backend `/cart`. Totals shown in the browser are for display only; the server's totals are the ones used for purchase.
 - `.env.example`: public API address, read with `import.meta.env.VITE_API_BASE_URL`.
 
 
 ## Checks
 
 ```sh
+npm test
 npm run lint
 npm run build
 npm run preview
