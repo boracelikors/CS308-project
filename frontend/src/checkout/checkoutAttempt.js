@@ -21,7 +21,7 @@ export function classifyCheckoutError(error) {
 const IDLE = { phase: 'editing', order: null, error: null }
 
 // submitRequest(requestKey, body) -> { order, ... }; throws ApiError on failure
-export function createCheckoutAttempt({ submitRequest, newRequestKey = () => crypto.randomUUID() }) {
+export function createCheckoutAttempt({ submitRequest, newRequestKey = () => crypto.randomUUID(), remember = () => {}, forget = () => {} }) {
   let state = IDLE
   let attempt = null // { requestKey, body } kept only while a retry may be needed
   let running = null
@@ -37,11 +37,12 @@ export function createCheckoutAttempt({ submitRequest, newRequestKey = () => cry
     running = submitRequest(attempt.requestKey, attempt.body).then(
       (result) => {
         attempt = null
+        forget()
         setState({ phase: 'succeeded', order: result.order, result, error: null })
       },
       (error) => {
         const phase = classifyCheckoutError(error)
-        if (phase !== 'uncertain') attempt = null // the outcome is known; the next attempt is new
+        if (phase !== 'uncertain') { attempt = null; forget() } // the outcome is known; the next attempt is new
         setState({ phase, order: null, error })
       },
     ).finally(() => {
@@ -63,6 +64,8 @@ export function createCheckoutAttempt({ submitRequest, newRequestKey = () => cry
       if (running) return running
       if (state.phase === 'succeeded' || state.phase === 'uncertain') return Promise.resolve()
       attempt = { requestKey: newRequestKey(), body }
+      try { remember(attempt.requestKey) }
+      catch { attempt = null; setState({phase:'invalid',order:null,error:{message:'Enable browser storage before placing an order so it can be recovered after refresh.'}}); return Promise.resolve() }
       return send()
     },
 
