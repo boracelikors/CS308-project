@@ -16,7 +16,8 @@
     "db:reset": "node db/reset-dev.js",
     "db:reset:test": "cross-env NODE_ENV=test node db/reset-dev.js",
     "seed": "knex seed:run",
-    "seed:test": "cross-env NODE_ENV=test knex seed:run"
+    "seed:test": "cross-env NODE_ENV=test knex seed:run",
+     "test:count": "node ../scripts/count-tests.js"
 
   },
   "keywords": [],
