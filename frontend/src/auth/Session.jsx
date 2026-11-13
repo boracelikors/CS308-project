@@ -14,7 +14,11 @@ export function SessionProvider({ children }) {
   function refresh() { setState({status:'loading', user:null}); return loadSession() }
   useEffect(() => {
     // Initial loading is already set; only the asynchronous result changes state.
-    loadSession()
+    const current = ++generation.current
+    api('/auth/me').then(
+      ({user}) => { if (current === generation.current) setState({status:'authenticated', user}) },
+      (error) => { if (current === generation.current) setState({status:error.status === 401 ? 'anonymous' : 'error', user:null}) },
+    )
     const invalidate = () => { generation.current++ }
     window.addEventListener('auth:expired', clear)
     return () => { invalidate(); window.removeEventListener('auth:expired', clear) }
