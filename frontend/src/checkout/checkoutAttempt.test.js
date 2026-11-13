@@ -33,6 +33,10 @@ describe('classifyCheckoutError', () => {
   it('maps backend errors to checkout screens', () => {
     assert.equal(classifyCheckoutError(offline()), 'uncertain')
     assert.equal(classifyCheckoutError(new ApiError('REQUEST_FAILED', 'x', { status: 503 })), 'uncertain')
+    // Codes from the SCRUM-34 backend (PR #22)
+    assert.equal(classifyCheckoutError(new ApiError('CHECKOUT_IN_PROGRESS', 'x', { status: 503 })), 'uncertain')
+    assert.equal(classifyCheckoutError(new ApiError('OUT_OF_STOCK', 'x', { status: 409 })), 'cartChanged')
+    assert.equal(classifyCheckoutError(new ApiError('REQUEST_KEY_REUSED', 'x', { status: 422 })), 'invalid')
     assert.equal(classifyCheckoutError(new Error('bug')), 'uncertain')
     assert.equal(classifyCheckoutError(declined()), 'declined')
     assert.equal(classifyCheckoutError(new ApiError('CART_CHANGED', 'x', { status: 409 })), 'cartChanged')

@@ -70,10 +70,13 @@ function CheckoutForm({ cart, checkout, attempt, defaultAddress }) {
     )
   }
 
-  // The server empties the cart when it creates the order; show that state everywhere
+  // The server empties the cart when it creates the order; show that state everywhere.
+  // A 400 VALIDATION_ERROR names the same fields as this form, so show them in place.
   function refreshAfterSuccess(promise) {
     promise.then(() => {
-      if (checkout.getState().phase === 'succeeded') cart.refresh()
+      const { phase, error } = checkout.getState()
+      if (phase === 'succeeded') cart.refresh()
+      else if (phase === 'invalid' && error?.fields) setFieldErrors(error.fields)
     })
   }
 
