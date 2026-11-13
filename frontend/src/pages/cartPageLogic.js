@@ -48,11 +48,11 @@ export function describeProblem(problem, stock = null) {
  * Determines checkout destination based on auth mode (guest vs customer).
  * Guests are directed to login with a safe return path.
  */
-export function getCheckoutDestination(mode, returnUrl = '/cart') {
+export function getCheckoutDestination(mode, returnTo = '/cart') {
   if (mode === 'guest') {
-    const encodedReturn = encodeURIComponent(returnUrl)
+    const encodedReturn = encodeURIComponent(returnTo)
     return {
-      url: `/login?returnUrl=${encodedReturn}`,
+      url: `/login?returnTo=${encodedReturn}`,
       isGuest: true,
       label: 'Sign in to Checkout',
     }
