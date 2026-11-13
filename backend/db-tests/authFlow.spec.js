@@ -71,6 +71,8 @@ test("login with the registered password works (email in any case)", async () =>
   const { user } = await res.json();
   assert.equal(user.email, "onur@example.com");
   assert.equal(user.role, "customer");
+  assert.equal(user.homeAddress, ACCOUNT.homeAddress);
+  assert.deepEqual(Object.keys(user).sort(), ["email", "homeAddress", "id", "name", "role"]);
 });
 
 test("the session is stored in MySQL and found by /auth/me", async () => {
@@ -82,7 +84,10 @@ test("the session is stored in MySQL and found by /auth/me", async () => {
 
   const me = await request("GET", "/auth/me", { cookie });
   assert.equal(me.status, 200);
-  assert.equal((await me.json()).user.email, "onur@example.com");
+  const { user } = await me.json();
+  assert.equal(user.email, "onur@example.com");
+  assert.equal(user.homeAddress, ACCOUNT.homeAddress);
+  assert.deepEqual(Object.keys(user).sort(), ["email", "homeAddress", "id", "name", "role"]);
 });
 
 test("still logged in after a server restart", async () => {
