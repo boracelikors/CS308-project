@@ -9,6 +9,7 @@ const STORED = {
   name: "Onur Tekin",
   email: "onur@example.com",
   role: "customer",
+  homeAddress: "Example Street 10",
   passwordHash: "HASH-OF-secret123",
 };
 
@@ -38,7 +39,7 @@ test("right email and password returns the user without the hash", async () => {
   const result = await authenticate({ email: "onur@example.com", password: "secret123" });
   assert.deepEqual(result, {
     ok: true,
-    user: { id: 7, name: "Onur Tekin", email: "onur@example.com", role: "customer" },
+    user: { id: 7, name: "Onur Tekin", email: "onur@example.com", role: "customer", homeAddress: "Example Street 10" },
   });
 });
 

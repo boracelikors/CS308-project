@@ -3,11 +3,11 @@ import ProductSection from './components/ProductSection.jsx'
 import ProductCatalog from './components/ProductCatalog.jsx'
 import './App.css'
 
-export default function App() {
+export function Home() {
   return (
     <>
       <a className="skip-link" href="#main">Skip to content</a>
-      <Header />
+
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-copy">
@@ -29,9 +29,21 @@ export default function App() {
         </ProductSection>
       </main>
       <footer className="site-footer">
-        <a className="footer-brand" href="#top">DOBBY Audiophile House</a>
+        <a className="footer-brand" href="#top">DOBBY Audophile House</a>
         <p>CS308 · Group 13</p>
       </footer>
     </>
   )
 }
+
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
+import { SessionProvider, Protected } from './auth/Session.jsx'
+import { AccountForm, Profile } from './auth/Account.jsx'
+function PendingPage({title}) { return <section className="account-panel"><h1>{title}</h1><p>This feature is being prepared. Please check back soon.</p><Link to="/">Return to the collection</Link></section> }
+export default function App() { return <BrowserRouter><SessionProvider><Header/><Routes>
+<Route path="/" element={<Home/>}/><Route path="/login" element={<AccountForm key="login"/>}/><Route path="/register" element={<AccountForm key="register" register/>}/>
+<Route path="/profile" element={<Protected><Profile/></Protected>}/>
+{['/checkout','/orders','/orders/:id'].map(path=><Route key={path} path={path} element={<Protected><PendingPage title={path==='/checkout'?'Checkout':'Your orders'}/></Protected>}/>)}
+<Route path="/cart" element={<PendingPage title="Your cart"/>}/><Route path="/products/:id" element={<PendingPage title="Product details"/>}/>
+<Route path="*" element={<section className="account-panel"><h1>Page not found</h1><Link to="/">Return home</Link></section>}/>
+</Routes></SessionProvider></BrowserRouter> }

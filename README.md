@@ -1,3 +1,7 @@
+## Current Sprint 2 frontend branch
+
+Account routes, cookie-session client and profile are implemented on this branch. See [run and verification steps](docs/sprint-2-release.md) and [API contract/handoff](docs/sprint-2-api.md). The historical Sprint 1 scope below is not a description of all current backend capabilities. Full checkout/order delivery still depends on other Sprint 2 tasks.
+
 # CS308 Group 13 — DOBBY Audiophile House
 
 A university group project to build an online store for high-end sound equipment.
