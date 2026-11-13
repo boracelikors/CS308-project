@@ -49,10 +49,10 @@ describe('describeProblem', () => {
 })
 
 describe('getCheckoutDestination', () => {
-  it('sends guest to login with safe returnUrl', () => {
+  it('sends guest to login with safe returnTo', () => {
     const destination = getCheckoutDestination('guest', '/cart')
     assert.equal(destination.isGuest, true)
-    assert.equal(destination.url, '/login?returnUrl=%2Fcart')
+    assert.equal(destination.url, '/login?returnTo=%2Fcart')
     assert.equal(destination.label, 'Sign in to Checkout')
   })
 
