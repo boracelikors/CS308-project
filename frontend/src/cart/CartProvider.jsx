@@ -121,6 +121,8 @@ export default function CartProvider({ user = null, children }) {
       add: (productId, quantity = 1) => run((adapter) => viewOf(adapter.add(productId, quantity))),
       setQuantity: (productId, quantity) => run((adapter) => viewOf(adapter.setQuantity(productId, quantity))),
       remove: (productId) => run((adapter) => viewOf(adapter.remove(productId))),
+      // Re-reads the cart, e.g. after checkout or when the server reports a changed cart
+      refresh: () => run((adapter) => viewOf(adapter.load())),
 
       // Guest -> account merge: status 'none' | 'merged' | 'failed' (guest cart kept, retry offered)
       merge: current.merge,

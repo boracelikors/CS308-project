@@ -8,11 +8,11 @@ export const CartContext = createContext(null)
 //   error: { code, message, available? } | null,   // last failed load or action
 //   items, subtotal, currency,                     // same shape as GET /cart; subtotal is display-only
 //   itemCount, quantityOf(productId),
-//   add(productId, quantity = 1), setQuantity(productId, quantity), remove(productId),
+//   add(productId, quantity = 1), setQuantity(productId, quantity), remove(productId), refresh(),
 //   merge: { status: 'none' | 'merged' | 'failed', error, guestItemCount }, retryMerge(),
 //   adjustments, needsReview, acknowledgeAdjustments()    // review merge changes before checkout
 // }
-// The three actions resolve with { ok: true } or { ok: false, code, message[, available] }.
+// The actions resolve with { ok: true } or { ok: false, code, message[, available] }.
 export function useCart() {
   const cart = useContext(CartContext)
   if (!cart) throw new Error('useCart must be used inside <CartProvider>.')

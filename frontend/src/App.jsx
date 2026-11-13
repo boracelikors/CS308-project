@@ -6,6 +6,7 @@ import { useSession } from './auth/context.js'
 import ProductDetailPage from './pages/ProductDetailPage.jsx'
 import CartPage from './pages/CartPage.jsx'
 import MergeNotice from './cart/MergeNotice.jsx'
+import CheckoutPage from './checkout/CheckoutPage.jsx'
 import './App.css'
 
 export function Home() {
@@ -49,7 +50,8 @@ function ProductRoute() { const {id} = useParams(); return <ProductDetailPage ke
 function ShoppingApp() { const {user, status} = useSession(); if (status === 'loading') return <p role="status">Checking your session…</p>; return <CartProvider key={user?.id ?? 'guest'} user={user}><Header/><MergeNotice/><Routes>
 <Route path="/" element={<Home/>}/><Route path="/login" element={<AccountForm key="login"/>}/><Route path="/register" element={<AccountForm key="register" register/>}/>
 <Route path="/profile" element={<Protected><Profile/></Protected>}/>
-{['/checkout','/orders','/orders/:id'].map(path=><Route key={path} path={path} element={<Protected><PendingPage title={path==='/checkout'?'Checkout':'Your orders'}/></Protected>}/>)}
+{['/orders','/orders/:id'].map(path=><Route key={path} path={path} element={<Protected><PendingPage title={path==='/checkout'?'Checkout':'Your orders'}/></Protected>}/>)}
+<Route path="/checkout" element={<Protected><CheckoutPage user={user} defaultAddress={user?.homeAddress}/></Protected>}/>
 <Route path="/cart" element={<CartPage/>}/><Route path="/products/:id" element={<ProductRoute/>}/>
 <Route path="*" element={<section className="account-panel"><h1>Page not found</h1><Link to="/">Return home</Link></section>}/>
 </Routes></CartProvider> }
