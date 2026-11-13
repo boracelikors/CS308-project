@@ -1,0 +1,101 @@
+# Runs on every pull request and on every push to main (SCRUM-37 test harness).
+# Three independent checks: backend unit tests, backend database/API tests on a
+# throwaway MySQL, and the frontend's lint/build/test commands.
+# All installs use the lockfiles (npm ci). The database password below is a
+# test-only value for the temporary CI container; it is not a real secret.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same pull request cancels the older, still-running checks
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-unit:
+    name: Backend unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Unit tests (no database)
+        run: npm test
+
+  backend-db:
+    name: Backend database and API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_test_only
+          MYSQL_DATABASE: dobby_test
+          MYSQL_USER: dobby_app
+          MYSQL_PASSWORD: ci_test_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_test_only"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: dobby_app
+      DB_PASSWORD: ci_test_only
+      # DB_NAME is required by config.js but never opened by the tests
+      DB_NAME: dobby_dev
+      DB_NAME_TEST: dobby_test
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Database and API tests (MySQL 8.4)
+        run: npm run test:db
+
+  frontend:
+    name: Frontend lint, build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      # The frontend test script arrives with the cart/checkout pull requests;
+      # until then this step is skipped instead of failing
+      - name: Unit tests
+        run: npm run test --if-present
