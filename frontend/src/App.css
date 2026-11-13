@@ -16,6 +16,11 @@
 .site-header nav { display: flex; align-items: center; gap: 24px; }
 .cart-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; }
 .cart-count { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: var(--color-accent); color: var(--color-surface); font-size: 12px; font-weight: 700; }
+.cart-notice { display: grid; gap: 10px; padding: 16px var(--page-gutter); background: var(--color-surface); border-bottom: 1px solid var(--color-text); font-size: 14px; }
+.cart-notice ul { margin: 0; padding-left: 20px; }
+.cart-notice--error { color: var(--color-error); }
+.cart-notice-action { justify-self: start; min-height: 44px; padding: 8px 16px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
+.cart-notice-action:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Hero */

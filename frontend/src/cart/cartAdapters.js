@@ -1,6 +1,7 @@
 // The two cart back ends behind one interface: load, add, setQuantity, remove.
 // Each method resolves with a cart view { items, subtotal, currency } (the GET /cart shape)
-// or rejects with a CartActionError.
+// or rejects with a CartActionError (guest rules) or an ApiError (server).
+import { API_BASE_URL, apiRequest } from '../api/request.js'
 import {
   CartActionError,
   addLine,
@@ -10,10 +11,7 @@ import {
   removeLine,
   setLineQuantity,
 } from './cartLogic.js'
-import { api } from '../api.js'
 import { browserStorage, loadGuestCart, saveGuestCart } from './guestCartStorage.js'
-
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001'
 
 // GET /products is paginated by the catalogue API (SCRUM-24): at most 50 per page, with the
 // page count in the X-Total-Pages header. Without that header (Sprint 1 API) one call returns all.
@@ -80,18 +78,20 @@ export function createGuestCart({ storage = browserStorage(), loadProducts = () 
 }
 
 // Logged-in customer: the backend cart (SCRUM-28); the session cookie identifies the owner.
-export function createServerCart() {
-  async function request(path, method = 'GET', body) {
-    let data
-    try { data = await api(`/cart${path}`, {method, body}) }
-    catch (error) { throw new CartActionError(error.code ?? 'CART_REQUEST_FAILED', error.message, {available:error.available}) }
-    return data.cart
-  }
-
+export function createServerCart({ request = apiRequest } = {}) {
+  const cartOf = (promise) => promise.then((data) => data.cart)
   return {
-    load: () => request(''),
-    add: (productId, quantity = 1) => request('/items', 'POST', { productId, quantity }),
-    setQuantity: (productId, quantity) => request(`/items/${productId}`, 'PUT', { quantity }),
-    remove: (productId) => request(`/items/${productId}`, 'DELETE'),
+    load: () => cartOf(request('/cart')),
+    add: (productId, quantity = 1) =>
+      cartOf(request('/cart/items', { method: 'POST', body: { productId, quantity } })),
+    setQuantity: (productId, quantity) =>
+      cartOf(request(`/cart/items/${productId}`, { method: 'PUT', body: { quantity } })),
+    remove: (productId) => cartOf(request(`/cart/items/${productId}`, { method: 'DELETE' })),
+
+    // POST /cart/merge (SCRUM-32, backend PR #25; see the README for the full rules)
+    //   { requestKey, items: [{ productId, quantity }] }
+    //   200 { cart, adjustments: [{ productId, name, requested, applied, reason }], replayed }
+    //   The same key with the same items returns the first result; other items -> 422 REQUEST_KEY_REUSED.
+    merge: (requestKey, items) => request('/cart/merge', { method: 'POST', body: { requestKey, items } }),
   }
 }

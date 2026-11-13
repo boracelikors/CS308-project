@@ -5,6 +5,7 @@ import CartProvider from './cart/CartProvider.jsx'
 import { useSession } from './auth/context.js'
 import ProductDetailPage from './pages/ProductDetailPage.jsx'
 import CartPage from './pages/CartPage.jsx'
+import MergeNotice from './cart/MergeNotice.jsx'
 import './App.css'
 
 export function Home() {
@@ -45,7 +46,7 @@ import { SessionProvider, Protected } from './auth/Session.jsx'
 import { AccountForm, Profile } from './auth/Account.jsx'
 function PendingPage({title}) { return <section className="account-panel"><h1>{title}</h1><p>This feature is being prepared. Please check back soon.</p><Link to="/">Return to the collection</Link></section> }
 function ProductRoute() { const {id} = useParams(); return <ProductDetailPage key={id} productId={id}/> }
-function ShoppingApp() { const {user, status} = useSession(); if (status === 'loading') return <p role="status">Checking your session…</p>; return <CartProvider key={user?.id ?? 'guest'} user={user}><Header/><Routes>
+function ShoppingApp() { const {user, status} = useSession(); if (status === 'loading') return <p role="status">Checking your session…</p>; return <CartProvider key={user?.id ?? 'guest'} user={user}><Header/><MergeNotice/><Routes>
 <Route path="/" element={<Home/>}/><Route path="/login" element={<AccountForm key="login"/>}/><Route path="/register" element={<AccountForm key="register" register/>}/>
 <Route path="/profile" element={<Protected><Profile/></Protected>}/>
 {['/checkout','/orders','/orders/:id'].map(path=><Route key={path} path={path} element={<Protected><PendingPage title={path==='/checkout'?'Checkout':'Your orders'}/></Protected>}/>)}
