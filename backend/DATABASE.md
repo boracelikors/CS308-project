@@ -109,6 +109,14 @@ Not included yet (owned by other tasks): discounts/cost (sales manager, later sp
 
 `db/seeds/01_catalog.js` loads **6 categories and 14 products**. Everything is **fictional demo data**: serial numbers start with `DEMO-`, distributors end with "(fictional demo)", and prices are not real offers. No customer accounts or personal data are seeded.
 
+`db/seeds/02_dev_accounts.js` (SCRUM-35) adds one **development/test-only** staff account so the delivery workflow can be shown before the manager dashboard exists:
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `pm@dobby.test` | `DemoManager2026` | `product_manager` |
+
+`.test` is a reserved domain, so this is not anyone's real address. Both seed files refuse to run when `NODE_ENV=production`; an existing account is left unchanged on later runs.
+
 ```sh
 npm run db:reset -- --seed   # fresh schema + catalogue (development only)
 npm run seed                 # or only (re)load the catalogue

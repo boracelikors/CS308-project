@@ -5,6 +5,7 @@ const { createSessionMiddleware } = require("./auth/session");
 const { createAuthRouter } = require("./auth/authRoutes");
 const { createCartRouter } = require("./cart/cartRoutes");
 const { createCheckoutRouter } = require("./checkout/checkoutRoutes");
+const { createOrderRouter, createDeliveryRouter } = require("./orders/orderRoutes");
 const { createMockBank } = require("./payment/mockBank");
 const { errorHandler } = require("./http/errorHandler");
 const { createProductRouter, PAGINATION_HEADERS } = require("./products/productRoutes");
@@ -53,6 +54,10 @@ function createApp({ db, config, sessionStore, bank = createMockBank(), checkout
 
   // POST /checkout with mock (test) payment (SCRUM-34)
   app.use("/checkout", createCheckoutRouter({ db, bank, hooks: checkoutHooks }));
+
+  // GET /orders, GET /orders/:id (customers); PATCH /orders/:id/status, GET /deliveries (product managers) (SCRUM-35)
+  app.use("/orders", createOrderRouter({ db }));
+  app.use("/deliveries", createDeliveryRouter({ db }));
 
   // Must stay after all routes: unhandled errors become { error: { code, message } }
   app.use(errorHandler);
