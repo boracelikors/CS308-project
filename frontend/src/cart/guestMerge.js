@@ -72,7 +72,17 @@ export function createGuestMerge({ mergeRequest, storage = browserStorage(), new
     }
 
     // On failure this throws and both the guest cart and the pending record are kept
-    const result = await mergeRequest(pending.requestKey, pending.items)
+    let result
+    try {
+      result = await mergeRequest(pending.requestKey, pending.items)
+    } catch (error) {
+      // The server already used this key for other items (e.g. a stale record from an old
+      // cart). Nothing was merged with this body, so start once more with a fresh key.
+      if (error?.code !== 'REQUEST_KEY_REUSED') throw error
+      pending = { userId, requestKey: newRequestKey(), items }
+      savePendingMerge(pending, storage)
+      result = await mergeRequest(pending.requestKey, pending.items)
+    }
 
     clearGuestCart(storage)
     clearPendingMerge(storage)
@@ -91,7 +101,8 @@ export function createGuestMerge({ mergeRequest, storage = browserStorage(), new
   }
 }
 
-// Human-readable text for one merge adjustment (shape: proposed SCRUM-32 contract)
+// Human-readable text for one merge adjustment (SCRUM-32). requested = account + guest quantity,
+// applied = the quantity in the cart after the merge.
 export function describeAdjustment({ requested, applied, reason }) {
   if (reason === 'INSUFFICIENT_STOCK' && applied > 0) {
     return `Reduced from ${requested} to ${applied}: only ${applied} in stock.`
