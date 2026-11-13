@@ -7,7 +7,7 @@ import {
   validateQuantity,
 } from './productDetailLogic.js'
 
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001'
+import { apiRequest } from '../api/request.js'
 
 /**
  * Audio category visual icons for fallback artwork
@@ -110,17 +110,7 @@ export default function ProductDetailPage({ productId }) {
       setImageError(false)
 
       try {
-        const response = await fetch(`${API_BASE_URL}/products/${productId}`)
-        if (response.status === 404) {
-          if (!cancelled) setStatus('not-found')
-          return
-        }
-
-        if (!response.ok) {
-          throw new Error(`GET /products/${productId} responded with ${response.status}`)
-        }
-
-        const data = await response.json()
+        const data = await apiRequest(`/products/${productId}`)
         if (!data || !data.product) {
           if (!cancelled) setStatus('not-found')
           return
@@ -131,6 +121,7 @@ export default function ProductDetailPage({ productId }) {
           setStatus('ready')
         }
       } catch (err) {
+        if (err.status === 404) { if (!cancelled) setStatus('not-found'); return }
         if (!cancelled) {
           console.error('Failed to load product detail:', err)
           setErrorMessage('Could not load product details. Please check your connection and try again.')

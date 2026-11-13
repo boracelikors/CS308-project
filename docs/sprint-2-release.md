@@ -42,3 +42,19 @@ PR: https://github.com/boracelikors/CS308-project/pull/26
 These checks cover this PR's account/session foundation. They do not claim teammate approval or completion of the whole sprint. The implemented authentication contract was checked against the live backend; proposed commerce endpoints still need their owners' agreement. Guest-cart merge and end-to-end purchase verification remain dependent follow-up work, not functionality delivered by this PR. Checkout, product-detail and order-history placeholders are intentional.
 
 Before merging, a teammate should review the diff and API handoff. Re-run integration if main changes. No merge has been performed as part of this verification.
+
+## Open-PR integration review — 13 November 2026
+
+Main at review: 2da7da0 (#26 and #25 merged). No open PR was merged during this review.
+
+Recommended merge order: **#18 -> #22 -> #23 -> #17 -> #24 -> #19 -> #20 -> #21**. Use normal merge commits to preserve the branch ancestry. Each later frontend PR includes its prerequisite changes; its diff against main shrinks after predecessors merge. Recheck main if teammates publish further changes.
+
+- Updated all eight PR branches without rewriting history. Resolved README, routing, header, CSS, API-client and test-runner conflicts while preserving both authors' features.
+- Individual branches: backend tests passed for #18/#22/#23; frontend tests/lint/build passed for #17/#24/#19/#20/#21.
+- Combined candidate (#21): 147 backend tests, 115 real MySQL integration tests, 109 Node frontend tests and 16 React component tests passed. Frontend lint/build passed. Counts include existing tests and are not a claim of all-new unit cases.
+- Fixed guest cart returnUrl/returnTo mismatch. Mounted all pages on React Router, connected CartProvider to the session, and unified the final candidate's API client, including expiry handling.
+- Fixed checkout reload uncertainty by persisting only an account-scoped request key and resolving/cancelling the previous attempt on the server; regression tests cover recovered success, blocked duplicate submission, missing storage, delayed original requests and account isolation.
+- Live browser with Express/MySQL: description search, product detail, guest cart surviving refresh, login/merge retaining the item, declined test payment, successful order and empty cart, order history/detail all passed. Manager API changed the order through in_transit to delivered, visible after refresh. A second customer could not open the first customer's order.
+- 375px order-detail visual check passed without horizontal overflow. Full multi-page 768px/1440px regression remains a whole-release checklist item.
+- SCRUM-26/27 implementation is integrated; their original #26 was merged. Final teammate review and verification after all dependency merges remain required. SCRUM-18 still requires backend-owner contract acceptance and the invoice interface from SCRUM-36.
+- SCRUM-36 PDF/test email and SCRUM-37 GitHub Actions remain outside these open PRs. The full Sprint 2 release is not Done.

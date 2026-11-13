@@ -19,7 +19,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest(path, { method = 'GET', body, signal, fetch: fetchImpl = globalThis.fetch } = {}) {
+export async function apiRequest(path, { method = 'GET', body, signal, fetch: fetchImpl = globalThis.fetch, withResponse = false } = {}) {
   let response
   try {
     response = await fetchImpl(`${API_BASE_URL}${path}`, {
@@ -51,5 +51,5 @@ export async function apiRequest(path, { method = 'GET', body, signal, fetch: fe
       status: 500,
     })
   }
-  return data
+  return withResponse ? {data, headers:response.headers} : data
 }
