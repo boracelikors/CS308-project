@@ -372,6 +372,43 @@ Response `200` (the account cart already had 2 of product 1, which has 4 in stoc
 
 The merge and the record of the key are written in one transaction that locks the customer's cart, so simultaneous retries with one key are applied exactly once.
 
+### POST /checkout
+
+Purpose: turn the logged-in customer's server cart into one paid order using a **test payment**. No real bank is contacted and no money moves.
+
+**Status:** Implemented (SCRUM-34), using the request/response shape proposed by the frontend in SCRUM-38 (`frontend/src/checkout/checkoutApi.js`). Customers only: guests get `401`, staff accounts `403`. The buyer and the cart always come from the login session.
+
+```json
+{
+  "requestKey": "3f1c2a9e-8b7d-4c6e-9f00-1a2b3c4d5e6f",
+  "expectedTotal": "37499.80",
+  "deliveryAddress": "Orta Mah. Universite Cad. No:27, Tuzla",
+  "payment": { "cardholderName": "Ayse Yilmaz", "cardNumber": "4242424242424242", "expiryMonth": 12, "expiryYear": 2030, "cvc": "123" }
+}
+```
+
+- `requestKey`: one `crypto.randomUUID()` per checkout attempt; resend the same key and body when the outcome is unknown.
+- `expectedTotal`: the cart `subtotal` the customer saw and confirmed. The server recalculates the total from current prices and never charges based on this value.
+- `deliveryAddress` is optional; without it the customer's home address is used. The order keeps a copy, so later profile changes do not affect it.
+- Test cards: `4000 0000 0000 0002` is always declined; any other card number that passes the standard checksum is approved (e.g. `4242 4242 4242 4242`). The full card number and CVC are never stored or logged; the order keeps only a mock payment reference and the last four digits.
+
+Success: `201 { "order": { id, status: "processing", createdAt, inTransitAt, deliveredAt, deliveryAddress, total, currency, paymentMode: "test", paymentReference, cardLast4, items: [{ productId, productName, productModel, unitPrice, quantity, lineTotal }] } }`. Stock is decreased and the purchased items are removed from the cart in the same database transaction.
+
+| Status | `error.code` | Meaning / what the frontend should do |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | Invalid fields; `error.fields` uses the form names (`requestKey`, `expectedTotal`, `deliveryAddress`, `cardholderName`, `cardNumber`, `expiry`, `cvc`) |
+| 400 | `EMPTY_CART` | Nothing to buy |
+| 409 | `CART_CHANGED` | Prices, stock or availability changed since the customer saw the cart; `error.cart` has the current cart (`problem` per item). Ask them to confirm again |
+| 402 | `PAYMENT_DECLINED` | The test bank declined the card; nothing was charged, cart and stock unchanged |
+| 409 | `OUT_OF_STOCK` | Another customer bought the last unit at the same moment; the payment was cancelled |
+| 422 | `REQUEST_KEY_REUSED` | The key was already used with a different body; start a new attempt |
+| 503 | `CHECKOUT_IN_PROGRESS` | The same key is still being processed; retry with the same key and body |
+
+**Retries:** repeating a request with the same key never charges or orders twice. After the bank has been called, the same key always returns the first answer (with header `Idempotent-Replayed: true`). After a server error (5xx) nothing was kept, so the same key and body can be sent again.
+
+Code: `backend/checkout/` (validation, service, route) and `backend/payment/mockBank.js`. Tests: `npm test` and `npm run test:db` (`db-tests/checkoutFlow.spec.js`).
+
+
 ## 10. In what order should we work?
 
 1. **Onur** creates the backend foundation.
