@@ -11,6 +11,7 @@
     "migrate:status": "knex migrate:status",
     "migrate:test": "cross-env NODE_ENV=test knex migrate:latest",
     "test": "node --test \"test/*.test.js\"",
+    "pretest:db": "cross-env NODE_ENV=test node db-tests/clean.js",
     "test:db": "cross-env NODE_ENV=test node --test --test-concurrency=1 \"db-tests/*.spec.js\"",
     "db:reset": "node db/reset-dev.js",
     "db:reset:test": "cross-env NODE_ENV=test node db/reset-dev.js",
