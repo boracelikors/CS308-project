@@ -182,4 +182,7 @@ module.exports = {
   addItem,
   setItemQuantity,
   removeItem,
+  ensureCart,
+  lockCart,
+  loadRows,
 };

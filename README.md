@@ -1,3 +1,7 @@
+## Current Sprint 2 frontend branch
+
+Account routes, cookie-session client and profile are implemented on this branch. See [run and verification steps](docs/sprint-2-release.md) and [API contract/handoff](docs/sprint-2-api.md). The historical Sprint 1 scope below is not a description of all current backend capabilities. Full checkout/order delivery still depends on other Sprint 2 tasks.
+
 # CS308 Group 13 — DOBBY Audiophile House
 
 A university group project to build an online store for high-end sound equipment.
@@ -272,6 +276,56 @@ Product images live in `frontend/public/images/`. The `image` field holds the fi
 
 The frontend and backend may have different local addresses. Bartu must allow the agreed frontend origin to request the backend data; the browser mechanism controlling this is called **CORS**.
 
+### POST /cart/merge
+
+Purpose: after login, add the guest cart (kept in the browser) to the customer's account cart. Retrying the same request can never add the quantities twice.
+
+**Status:** Implemented (SCRUM-32), using the shape proposed by the frontend in SCRUM-33 (`frontend/src/cart/cartAdapters.js`). Customers only: guests get `401`, staff accounts `403`. The cart owner always comes from the login session.
+
+```json
+{
+  "requestKey": "3f1c2a9e-8b7d-4c6e-9f00-1a2b3c4d5e6f",
+  "items": [{ "productId": 1, "quantity": 5 }, { "productId": 11, "quantity": 1 }]
+}
+```
+
+- `requestKey`: one `crypto.randomUUID()` per guest cart (8-64 letters, digits, `-` or `_`). Resend the same key and items when the outcome is unknown.
+- `items`: 1-50 lines, `productId` a positive whole number, `quantity` 1-999. A product listed twice is added up. Any prices or totals in the body are ignored.
+
+Merge rules, per product (`requested` = account quantity + guest quantity):
+
+| Situation | Result | `reason` |
+| --- | --- | --- |
+| In stock, enough left | Quantities added up | (no adjustment) |
+| `requested` is more than the stock | Capped at the stock | `INSUFFICIENT_STOCK` |
+| Stock is 0 | Not added | `OUT_OF_STOCK` |
+| Unknown product or taken off sale | Not added | `PRODUCT_UNAVAILABLE` |
+
+The merge never lowers a quantity that was already in the account cart; if the stock dropped later, `GET /cart` flags that line with its `problem`. Prices and the subtotal are always read from the database.
+
+Response `200` (the account cart already had 2 of product 1, which has 4 in stock):
+
+```json
+{
+  "cart": { "items": [...], "subtotal": "369590.00", "currency": "TRY" },
+  "adjustments": [
+    { "productId": 1, "name": "Reference Bookshelf Monitors (Pair)", "requested": 7, "applied": 4, "reason": "INSUFFICIENT_STOCK" }
+  ],
+  "replayed": false
+}
+```
+
+`cart` has the `GET /cart` shape. `applied` is the quantity of that product in the cart after the merge.
+
+| Status | `error.code` | When |
+| --- | --- | --- |
+| 200 | | Merged; or `replayed: true` when this key was already applied: nothing is added again, `adjustments` are the ones from the first merge and `cart` is the cart as it is now |
+| 400 | `VALIDATION_ERROR` | `error.fields` names `requestKey` and/or `items` (with the index of the bad line) |
+| 401 / 403 | | Not logged in / not a customer |
+| 422 | `REQUEST_KEY_REUSED` | The key was already used with different items; start again with a new key |
+
+The merge and the record of the key are written in one transaction that locks the customer's cart, so simultaneous retries with one key are applied exactly once.
+
 ### POST /checkout
 
 Purpose: turn the logged-in customer's server cart into one paid order using a **test payment**. No real bank is contacted and no money moves.
@@ -307,6 +361,7 @@ Success: `201 { "order": { id, status: "processing", createdAt, inTransitAt, del
 **Retries:** repeating a request with the same key never charges or orders twice. After the bank has been called, the same key always returns the first answer (with header `Idempotent-Replayed: true`). After a server error (5xx) nothing was kept, so the same key and body can be sent again.
 
 Code: `backend/checkout/` (validation, service, route) and `backend/payment/mockBank.js`. Tests: `npm test` and `npm run test:db` (`db-tests/checkoutFlow.spec.js`).
+
 
 ## 10. In what order should we work?
 
