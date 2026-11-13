@@ -8,7 +8,7 @@ import {
   parsePaginationHeaders,
 } from '../catalog/catalogQuery.js'
 
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001'
+import { apiRequest } from '../api/request.js'
 
 export default function ProductCatalog() {
   // Read initial parameters from browser URL
@@ -78,16 +78,8 @@ export default function ProductCatalog() {
     })
 
     try {
-      const response = await fetch(`${API_BASE_URL}/products${apiQuery}`, {
-        signal: controller.signal,
-      })
-
-      if (!response.ok) {
-        throw new Error(`Catalogue request failed with status ${response.status}`)
-      }
-
-      const data = await response.json()
-      const paginationMeta = parsePaginationHeaders(response.headers, DEFAULT_PAGE_SIZE)
+      const {data, headers} = await apiRequest(`/products${apiQuery}`, {signal:controller.signal, withResponse:true})
+      const paginationMeta = parsePaginationHeaders(headers, DEFAULT_PAGE_SIZE)
 
       // Guard against stale responses: only apply if this request is still the newest
       if (fetchId === activeFetchIdRef.current) {
