@@ -106,7 +106,7 @@ project-root/
 ├── README.md                 # This introduction and setup guide
 ├── frontend/                 # Browser interface and styling
 └── backend/                  # Server and API code
-    └── sample-products.json  # Six demonstration products
+    └── sample-products.json  # Sprint 1 reference data (the API now reads MySQL)
 ```
 
 The **project root** is the top-level folder containing this README. Framework-specific files and image locations should be documented here after the team chooses them.
@@ -233,29 +233,52 @@ Expected response:
 
 ### GET /products
 
-Purpose: return the six sample products as a JSON array.
+Purpose: list the products on sale from the MySQL catalogue, with search, category filter, sorting and pagination. Public (no login needed).
 
-**Status:** Implemented (SCRUM-7). Address: `http://localhost:3001/products`
+Address: `http://localhost:3001/products`. Needs the database to be migrated and seeded (`npm run migrate`, `npm run seed`).
 
-The backend reads `backend/sample-products.json` once at startup. Restart the backend after editing that file.
+| Query parameter | Values | Default |
+| --- | --- | --- |
+| `search` | Text, at most 100 characters. Case-insensitive match in the product **name or description**. `%` and `_` are normal characters. | no search |
+| `categoryId` | Positive whole number (`1`-`6` in the seed). Can be combined with `search`. | all categories |
+| `sort` | `price_asc`, `price_desc`, `popularity` (most units sold in paid orders first) | product ID ascending |
+| `page` | Positive whole number | `1` |
+| `pageSize` | `1`-`50` | `20` |
 
-**CORS:** Only browser requests from the frontend origin `http://localhost:5173` are allowed. To use a different origin, set `FRONTEND_ORIGIN`, for example: `FRONTEND_ORIGIN=http://localhost:5174 npm run dev`
+Every sort uses the product ID as the last key, so products with the same price or the same sales always appear in the same order. Out-of-stock products are included (`quantityInStock: 0`, `inStock: false`); products taken off sale (`is_active = false`) are not.
 
+The response body is a **plain JSON array** of products (the same shape as Sprint 1, so the homepage needs no change). Pagination metadata is sent in response headers, which the frontend can read with `response.headers.get("X-Total-Count")` (they are listed in CORS `exposedHeaders`):
 
-**JSON** is a text format for structured data. An array is a list of records; each product record contains named fields.
+| Header | Meaning |
+| --- | --- |
+| `X-Total-Count` | Number of products matching the filters (all pages) |
+| `X-Page` | Current page |
+| `X-Page-Size` | Page size used |
+| `X-Total-Pages` | Number of pages (`0` when nothing matches) |
 
-Example response shape, showing only one of the six records:
+If `X-Total-Count` is larger than the number of items received, there are more pages: request `page=2`, or a larger `pageSize` (at most 50).
+
+Example: `GET /products?search=headphones&categoryId=5&sort=price_asc&page=1&pageSize=1`
+
+Headers: `X-Total-Count: 3`, `X-Page: 1`, `X-Page-Size: 1`, `X-Total-Pages: 3`
 
 ```json
 [
   {
-    "id": 1,
-    "name": "Studio Monitor",
-    "category": "Speakers",
-    "price": 15000,
+    "id": 14,
+    "name": "Wireless Hi-Res Noise-Cancelling Headphones",
+    "model": "DB-HP-W2",
+    "serialNumber": "DEMO-HPH-0014",
+    "description": "Over-ear wireless headphones with ...",
+    "category": "Headphones",
+    "categoryId": 5,
+    "price": "17990.00",
     "currency": "TRY",
-    "description": "Sample studio speaker for our demonstration.",
-    "image": "speaker.jpg"
+    "quantityInStock": 20,
+    "inStock": true,
+    "warrantyStatus": "2 years",
+    "distributor": "Bosphorus Pro Sound Supply (fictional demo)",
+    "image": "headphones.jpg"
   }
 ]
 ```
@@ -263,14 +286,37 @@ Example response shape, showing only one of the six records:
 | Field | Meaning |
 | --- | --- |
 | `id` | Unique identifier for the product |
-| `name` | Product name shown to the visitor |
-| `category` | Product group, such as Speakers |
-| `price` | Numeric demonstration price |
-| `currency` | Currency code; TRY is used in this example |
-| `description` | Short explanation of the product |
-| `image` | Image filename agreed with the frontend team |
+| `name`, `model`, `serialNumber`, `description` | Product details (R9) |
+| `category`, `categoryId` | Category name (as shown on the cards) and its ID (for filtering) |
+| `price` | Exact price as a string with two decimals, e.g. `"18749.90"` (MySQL DECIMAL; never rounded) |
+| `currency` | Always `TRY` |
+| `quantityInStock`, `inStock` | Exact stock and whether it can be added to the cart |
+| `warrantyStatus`, `distributor` | R9 fields |
+| `image` | Image filename; the card loads it from `/images/<filename>` |
 
-Prices and product details are demonstration data, not verified retail offers. Use one currency consistently; the example does not finalize the team's currency decision.
+Responses:
+
+| Case | Status | Body |
+| --- | --- | --- |
+| Success (also when nothing matches) | 200 | Array of products; no matches gives `[]` with `X-Total-Count: 0`, `X-Total-Pages: 0` |
+| Page after the last page | 200 | `[]` with the real `X-Total-Count` |
+| Invalid parameter (e.g. `sort=name`, `pageSize=500`, `categoryId=abc`) | 400 | `{ "error": { "code": "VALIDATION_ERROR", "message": "...", "fields": { "sort": "..." } } }` |
+| Database unavailable | 500 | `{ "error": { "code": "INTERNAL_ERROR", "message": "..." } }` |
+
+### GET /products/:id
+
+Purpose: one product for the product detail page. Same fields as a list item, wrapped as `{ "product": { ... } }`.
+
+| Case | Status |
+| --- | --- |
+| Product exists and is on sale (also with zero stock) | 200 |
+| Unknown ID, malformed ID (`abc`, `0`, `-1`) or product taken off sale | 404 `{ "error": { "code": "PRODUCT_NOT_FOUND", "message": "Product not found." } }` |
+
+`backend/sample-products.json` is no longer used by the API. It is kept only as the Sprint 1 reference that the seed tests compare against.
+
+**CORS:** Only browser requests from the frontend origins in `FRONTEND_ORIGIN` (default `http://localhost:5173` and `http://localhost:4173`) are allowed.
+
+Prices and product details are demonstration data, not verified retail offers.
 
 Product images live in `frontend/public/images/`. The `image` field holds the filename, and the card loads it from `/images/<filename>`.
 
