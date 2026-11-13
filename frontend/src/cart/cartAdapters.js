@@ -10,18 +10,27 @@ import {
   removeLine,
   setLineQuantity,
 } from './cartLogic.js'
+import { api } from '../api.js'
 import { browserStorage, loadGuestCart, saveGuestCart } from './guestCartStorage.js'
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001'
 
-async function fetchProducts() {
-  const response = await fetch(`${API_BASE_URL}/products`)
-  if (!response.ok) throw new Error(`GET /products responded with ${response.status}`)
-  return response.json()
+// GET /products is paginated by the catalogue API (SCRUM-24): at most 50 per page, with the
+// page count in the X-Total-Pages header. Without that header (Sprint 1 API) one call returns all.
+export async function fetchProducts({ fetch: fetchImpl = fetch, maxPages = 20 } = {}) {
+  const products = []
+  for (let page = 1; page <= maxPages; page += 1) {
+    const response = await fetchImpl(`${API_BASE_URL}/products?page=${page}&pageSize=50`)
+    if (!response.ok) throw new Error(`GET /products responded with ${response.status}`)
+    products.push(...(await response.json()))
+    const totalPages = Number(response.headers.get('X-Total-Pages'))
+    if (!Number.isInteger(totalPages) || page >= totalPages) break
+  }
+  return products
 }
 
 // Guest: lines live in localStorage; prices and stock come from a fresh GET /products.
-export function createGuestCart({ storage = browserStorage(), loadProducts = fetchProducts } = {}) {
+export function createGuestCart({ storage = browserStorage(), loadProducts = () => fetchProducts() } = {}) {
   let lines = loadGuestCart(storage)
   let productsById = null
 
@@ -73,21 +82,9 @@ export function createGuestCart({ storage = browserStorage(), loadProducts = fet
 // Logged-in customer: the backend cart (SCRUM-28); the session cookie identifies the owner.
 export function createServerCart() {
   async function request(path, method = 'GET', body) {
-    const response = await fetch(`${API_BASE_URL}/cart${path}`, {
-      method,
-      credentials: 'include',
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    const data = await response.json().catch(() => null)
-    if (!response.ok) {
-      const error = data?.error
-      throw new CartActionError(
-        error?.code ?? 'CART_REQUEST_FAILED',
-        error?.message ?? 'The cart could not be updated.',
-        error?.available === undefined ? {} : { available: error.available },
-      )
-    }
+    let data
+    try { data = await api(`/cart${path}`, {method, body}) }
+    catch (error) { throw new CartActionError(error.code ?? 'CART_REQUEST_FAILED', error.message, {available:error.available}) }
     return data.cart
   }
 
