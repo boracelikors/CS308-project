@@ -29,9 +29,9 @@ async function createUser(db, { name, email, passwordHash, role, taxId, homeAddr
 async function findUserByEmail(db, email) {
   const row = await db("users")
     .where({ email })
-    .first("id", "name", "email", "role", "password_hash");
+    .first("id", "name", "email", "role", "password_hash", "home_address");
   if (!row) return null;
-  return { id: row.id, name: row.name, email: row.email, role: row.role, passwordHash: row.password_hash };
+  return { id: row.id, name: row.name, email: row.email, role: row.role, homeAddress: row.home_address, passwordHash: row.password_hash };
 }
 
 module.exports = { createUser, findUserByEmail };
