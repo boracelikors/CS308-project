@@ -88,10 +88,10 @@ export function createServerCart({ request = apiRequest } = {}) {
       cartOf(request(`/cart/items/${productId}`, { method: 'PUT', body: { quantity } })),
     remove: (productId) => cartOf(request(`/cart/items/${productId}`, { method: 'DELETE' })),
 
-    // PROPOSED contract, to confirm with SCRUM-32 (not implemented in the backend yet):
-    //   POST /cart/merge { requestKey, items: [{ productId, quantity }] }
-    //   200 { cart, adjustments: [{ productId, name, requested, applied, reason }] }
-    //   The same key with the same body returns the first result again.
+    // POST /cart/merge (SCRUM-32, backend PR #25; see the README for the full rules)
+    //   { requestKey, items: [{ productId, quantity }] }
+    //   200 { cart, adjustments: [{ productId, name, requested, applied, reason }], replayed }
+    //   The same key with the same items returns the first result; other items -> 422 REQUEST_KEY_REUSED.
     merge: (requestKey, items) => request('/cart/merge', { method: 'POST', body: { requestKey, items } }),
   }
 }

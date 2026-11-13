@@ -121,12 +121,31 @@ describe('guest cart merge', () => {
     assert.equal(storage.getItem(GUEST_CART_KEY), null)
   })
 
+  it('starts again with a new key when the server says the key was used for other items', async () => {
+    const storage = memoryStorage()
+    saveGuestCart([{ productId: 1, quantity: 2 }], storage)
+    const calls = []
+    const merge = createGuestMerge({
+      storage,
+      newRequestKey: keys(),
+      mergeRequest: async (requestKey) => {
+        calls.push(requestKey)
+        if (calls.length === 1) throw Object.assign(new Error('reused'), { code: 'REQUEST_KEY_REUSED', status: 422 })
+        return { cart: { items: [] }, adjustments: [] }
+      },
+    })
+    assert.equal((await merge.run(42)).merged, true)
+    assert.deepEqual(calls, ['key-1', 'key-2'])
+    assert.equal(loadPendingMerge(storage), null)
+    assert.deepEqual(loadGuestCart(storage), [])
+  })
+
   it('describes merge adjustments', () => {
     assert.equal(
       describeAdjustment({ requested: 3, applied: 1, reason: 'INSUFFICIENT_STOCK' }),
       'Reduced from 3 to 1: only 1 in stock.',
     )
     assert.equal(describeAdjustment({ requested: 1, applied: 0, reason: 'OUT_OF_STOCK' }), 'Out of stock, so it was not added.')
-    assert.equal(describeAdjustment({ requested: 1, applied: 0, reason: 'UNAVAILABLE' }), 'No longer sold, so it was not added.')
+    assert.equal(describeAdjustment({ requested: 1, applied: 0, reason: 'PRODUCT_UNAVAILABLE' }), 'No longer sold, so it was not added.')
   })
 })
