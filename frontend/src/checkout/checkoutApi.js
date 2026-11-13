@@ -14,3 +14,5 @@ import { apiRequest } from '../api/request.js'
 export function submitCheckout(requestKey, body) {
   return apiRequest('/checkout', { method: 'POST', body: { requestKey, ...body } })
 }
+
+export function resolveCheckout(requestKey) { return apiRequest(`/checkout/attempts/${encodeURIComponent(requestKey)}/resolve`, {method:'POST'}) }

@@ -1,7 +1,7 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useCart } from '../cart/cartContext.js'
 import { formatMoney } from '../format.js'
-import { submitCheckout } from './checkoutApi.js'
+import { submitCheckout, resolveCheckout } from './checkoutApi.js'
 import { createCheckoutAttempt } from './checkoutAttempt.js'
 import { ADDRESS_MAX_LENGTH, validateDeliveryAddress, validatePayment } from './checkoutValidation.js'
 
@@ -11,12 +11,43 @@ const EMPTY_CARD = { cardholderName: '', cardNumber: '', expiry: '', cvc: '' }
 // SCRUM-18 adds routes. defaultAddress is the profile address once an endpoint provides it.
 export default function CheckoutPage({ user, defaultAddress = '' }) {
   const cart = useCart()
-  const [checkout] = useState(() => createCheckoutAttempt({ submitRequest: submitCheckout }))
+  const storageKey = `dobby.checkoutAttempt:${user?.id}`
+  const [recovery, setRecovery] = useState(() => {
+    try { const key = localStorage.getItem(storageKey); return key ? {key, phase:'pending'} : null }
+    catch { return null }
+  })
+  const [checkout] = useState(() => createCheckoutAttempt({
+    submitRequest: submitCheckout,
+    remember: (key) => localStorage.setItem(storageKey, key),
+    forget: () => { try { localStorage.removeItem(storageKey) } catch { /* A later reload safely resolves the old key. */ } },
+  }))
+  const recoveryKey = recovery?.key
+  useEffect(() => {
+    if (!recoveryKey) return
+    let active = true
+    resolveCheckout(recoveryKey).then(
+      result => { if (active) setRecovery({key:recoveryKey, ...result}) },
+      () => { if (active) setRecovery({key:recoveryKey,phase:'pending'}) },
+    )
+    return () => { active = false }
+  }, [recoveryKey])
+  async function retryRecovery() {
+    try { setRecovery({key:recoveryKey, ...await resolveCheckout(recoveryKey)}) }
+    catch { setRecovery({key:recoveryKey,phase:'pending'}) }
+  }
+  function finishRecovery() {
+    try { localStorage.removeItem(storageKey) } catch { return }
+    setRecovery(null); cart.refresh()
+  }
   const attempt = useSyncExternalStore(checkout.subscribe, checkout.getState)
 
   if (user?.role !== 'customer') {
     return <CheckoutMessage title="Please sign in to check out">Your cart is kept while you sign in.</CheckoutMessage>
   }
+  if (recovery?.phase === 'succeeded') return <OrderConfirmation order={recovery.order}/>
+  if (recovery) return <CheckoutMessage title="Checking your previous checkout">
+    {recovery.phase === 'failed' ? <><span>{recovery.error?.message || 'No order was placed.'}</span><button onClick={finishRecovery}>Return to checkout</button></> : <><span>The previous result is not confirmed yet. A new order is blocked to prevent duplicates.</span><button onClick={retryRecovery}>Check again</button></>}
+  </CheckoutMessage>
   if (attempt.phase === 'succeeded') return <OrderConfirmation order={attempt.order} />
   if (cart.status === 'loading') return <CheckoutMessage title="Loading your cart..." />
   if (cart.status === 'error') {
@@ -270,7 +301,7 @@ function OrderConfirmation({ order }) {
       <h1 id="checkout-title">Order #{order.id} placed</h1>
       <p role="status">Status: Processing. This was a test payment; no money was charged.</p>
       <div className="checkout-summary">
-        <h2>Invoice details</h2>
+        <h2>Order summary</h2><p>PDF invoice and email delivery are not available yet.</p>
         <ul className="checkout-lines">
           {order.items?.map((item) => (
             <li key={item.productId}>
