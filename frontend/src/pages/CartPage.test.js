@@ -73,7 +73,7 @@ describe('Cart Page Scenarios (SCRUM-31)', () => {
     it('sends guest to login with safe encoded return path', () => {
       const guestDest = getCheckoutDestination('guest', '/cart')
       assert.equal(guestDest.isGuest, true)
-      assert.equal(guestDest.url, '/login?returnUrl=%2Fcart')
+      assert.equal(guestDest.url, '/login?returnTo=%2Fcart')
       assert.equal(guestDest.label, 'Sign in to Checkout')
     })
 
