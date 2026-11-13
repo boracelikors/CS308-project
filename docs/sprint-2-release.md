@@ -21,3 +21,10 @@ This branch implements SCRUM-18/26/27 and prepares release documentation. Review
 Main still serves the static product feed. Guest cart/merge, product detail/search, checkout, invoice/email, order-history and manager delivery integration require their owners' PRs. Until then the full shopping demo, payment/stock concurrency checks and test-mailbox receipt cannot be verified. No fake success flows are provided.
 
 Before release, follow SCRUM-41's full checklist against a recorded merged commit, with separate test evidence. Review R5 delivered-purchase ratings/comments and comment approval in Sprint 3. Each member must explain their code. Course evidence thresholds apply per demo; do not manufacture commits/bugs to satisfy counts.
+
+## Verification recorded 13 November 2026
+- Frontend: 14 automated cases pass (mocked HTTP); production build passes.
+- Backend: all 77 tests pass, including HTTP/session tests; address projection assertion updated.
+- Lint exits successfully with one React set-state-in-effect warning for asynchronous initial session loading.
+- Live MySQL/database suite, browser visual/responsive checks and complete end-to-end purchase flow have not been run for this branch. They remain review gates.
+- Git push is blocked by missing local GitHub authentication; the connected GitHub app also rejects tree writes with 403. No remote PR or merge exists yet.
