@@ -302,3 +302,30 @@ test("two customers competing for the last unit: exactly one wins, stock never g
   assert.equal((await db("order_items").where({ product_id: 8 })).length, 1);
   assert.equal(bank.capturedCount(), captured + 1, "the loser's charge is voided");
 });
+
+
+test("reload recovery returns the completed order without another charge", async () => {
+  const {cookie} = await newCustomer();
+  const cart = await addToCart(cookie, 1, 1);
+  const key = newKey();
+  const original = await checkout(cookie, {key, expectedTotal:cart.subtotal});
+  assert.equal(original.status, 201);
+  const {order} = await original.json();
+  const calls = chargeCalls;
+  const recovered = await request("POST", `/checkout/attempts/${key}/resolve`, {cookie});
+  assert.deepEqual((await recovered.json()).order.id, order.id);
+  assert.equal(chargeCalls, calls);
+});
+
+test("recovery fences a delayed submission and isolates the account", async () => {
+  const first = await newCustomer(); const second = await newCustomer();
+  const cart = await addToCart(first.cookie, 1, 1); const key = newKey();
+  const cancelled = await request("POST", `/checkout/attempts/${key}/resolve`, {cookie:first.cookie});
+  assert.equal((await cancelled.json()).phase, "failed");
+  assert.equal((await checkout(first.cookie, {key, expectedTotal:cart.subtotal})).status, 422);
+  const secondCart = await addToCart(second.cookie, 1, 1);
+  assert.equal((await checkout(second.cookie, {key, expectedTotal:secondCart.subtotal})).status, 201);
+  const own = await request("POST", `/checkout/attempts/${key}/resolve`, {cookie:first.cookie});
+  assert.equal((await own.json()).phase, "failed");
+  assert.equal((await request("POST", `/checkout/attempts/${key}/resolve`)).status, 401);
+});

@@ -3,13 +3,19 @@
 // only and is never stored or logged.
 const express = require("express");
 const { requireRole } = require("../auth/guards");
-const { validateCheckout } = require("./validateCheckout");
+const { validateCheckout, validateIdempotencyKey } = require("./validateCheckout");
 const checkoutService = require("./checkoutService");
 
 // service and hooks are injectable for tests
 function createCheckoutRouter({ db, bank, service = checkoutService, hooks = {} }) {
   const router = express.Router();
   router.use(requireRole("customer")); // 401 for guests, 403 for staff accounts
+
+  router.post("/attempts/:key/resolve", async (req, res, next) => {
+    if (!validateIdempotencyKey(req.params.key)) return res.status(400).json({error:{code:"VALIDATION_ERROR",message:"Invalid request key."}});
+    try { res.json(await service.resolveAttempt(db, req.session.user.id, req.params.key)); }
+    catch (error) { next(new Error(`Checkout recovery failed: ${error.code || error.name}`)); }
+  });
 
   router.post("/", async (req, res, next) => {
     const checked = validateCheckout(req.body);

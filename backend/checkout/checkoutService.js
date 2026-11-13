@@ -262,4 +262,19 @@ async function checkout(db, bank, { userId, key, input, hooks = {} }) {
   }
 }
 
-module.exports = { checkout, orderView, CheckoutConflict };
+// A reload may lose the in-memory payment body. Resolve by key without sending card data.
+// If no request arrived, atomically reserve a cancelled key so a delayed POST cannot buy later.
+async function resolveAttempt(db, userId, key) {
+  const cancelled = { error: { code: "CHECKOUT_CANCELLED", message: "This attempt was cancelled before submission. Start a new attempt." } };
+  try {
+    await db("checkout_requests").insert({ customer_id: userId, request_key: key,
+      request_hash: "cancelled-before-submission", status: "failed", response_status: 409,
+      response_body: JSON.stringify(cancelled) });
+  } catch (error) { if (error.code !== "ER_DUP_ENTRY") throw error; }
+  const row = await db("checkout_requests").where({ customer_id: userId, request_key: key }).first();
+  // A concurrent failed request may release its key. Retry, rather than declaring a new attempt safe.
+  if (!row || row.status === "pending") return { phase: "pending" };
+  const body = typeof row.response_body === "string" ? JSON.parse(row.response_body) : row.response_body;
+  return row.status === "succeeded" ? { phase: "succeeded", order: body.order } : { phase: "failed", error: body.error };
+}
+module.exports = { checkout, orderView, CheckoutConflict, resolveAttempt };
