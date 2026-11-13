@@ -39,7 +39,7 @@ function createAuthenticator({ findUserByEmail, verifyPassword, limiter, dummyHa
     }
 
     limiter.recordSuccess(email);
-    return { ok: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
+    return { ok: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, homeAddress: user.homeAddress } };
   };
 }
 

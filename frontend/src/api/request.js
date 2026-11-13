@@ -38,6 +38,7 @@ export async function apiRequest(path, { method = 'GET', body, signal, fetch: fe
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {
+    if (response.status === 401 && !path.startsWith('/auth/') && typeof window !== 'undefined') window.dispatchEvent(new Event('auth:expired'))
     const { code, message, ...details } = data?.error ?? {}
     throw new ApiError(code ?? 'REQUEST_FAILED', message ?? 'Something went wrong. Please try again.', {
       status: response.status,
