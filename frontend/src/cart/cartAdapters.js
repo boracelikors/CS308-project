@@ -10,6 +10,7 @@ import {
   removeLine,
   setLineQuantity,
 } from './cartLogic.js'
+import { api } from '../api.js'
 import { browserStorage, loadGuestCart, saveGuestCart } from './guestCartStorage.js'
 
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001'
@@ -81,21 +82,9 @@ export function createGuestCart({ storage = browserStorage(), loadProducts = () 
 // Logged-in customer: the backend cart (SCRUM-28); the session cookie identifies the owner.
 export function createServerCart() {
   async function request(path, method = 'GET', body) {
-    const response = await fetch(`${API_BASE_URL}/cart${path}`, {
-      method,
-      credentials: 'include',
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    })
-    const data = await response.json().catch(() => null)
-    if (!response.ok) {
-      const error = data?.error
-      throw new CartActionError(
-        error?.code ?? 'CART_REQUEST_FAILED',
-        error?.message ?? 'The cart could not be updated.',
-        error?.available === undefined ? {} : { available: error.available },
-      )
-    }
+    let data
+    try { data = await api(`/cart${path}`, {method, body}) }
+    catch (error) { throw new CartActionError(error.code ?? 'CART_REQUEST_FAILED', error.message, {available:error.available}) }
     return data.cart
   }
 

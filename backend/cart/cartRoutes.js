@@ -4,6 +4,8 @@ const express = require("express");
 const { requireRole } = require("../auth/guards");
 const cartStore = require("./cartStore");
 const { CartError, CART_ERROR_STATUS } = cartStore;
+const { mergeGuestCart, MergeKeyReused } = require("./cartMerge");
+const { validateMerge, requestHash } = require("./validateMerge");
 
 // "12" -> 12; anything else -> null
 function parseProductId(value) {
@@ -68,6 +70,30 @@ function createCartRouter({ db, store = bindStore(db) }) {
       return productId === null ? store.getCart(userId) : store.removeItem(userId, productId);
     })
   );
+  // POST /cart/merge { requestKey, items: [{ productId, quantity }] } (SCRUM-32)
+  // Adds the guest cart after login. The same requestKey is applied at most once.
+  router.post("/merge", async (req, res) => {
+    const parsed = validateMerge(req.body);
+    if (!parsed.ok) {
+      return res.status(400).json({
+        error: { code: "VALIDATION_ERROR", message: "Some fields are invalid.", fields: parsed.fields },
+      });
+    }
+    const { requestKey, items } = parsed.value;
+    try {
+      const result = await store.mergeGuestCart(req.session.user.id, {
+        requestKey,
+        items,
+        hash: requestHash(items),
+      });
+      return res.json(result);
+    } catch (err) {
+      if (err instanceof MergeKeyReused) {
+        return res.status(422).json({ error: { code: err.code, message: err.message } });
+      }
+      throw err; // Express 5 passes it to the error handler -> 500
+    }
+  });
 
   return router;
 }
@@ -77,8 +103,9 @@ function bindStore(db) {
     getCart: (userId) => cartStore.getCart(db, userId),
     addItem: (userId, productId, quantity) => cartStore.addItem(db, userId, productId, quantity),
     setItemQuantity: (userId, productId, quantity) =>
-      cartStore.setItemQuantity(db, userId, productId, quantity),
+    cartStore.setItemQuantity(db, userId, productId, quantity),
     removeItem: (userId, productId) => cartStore.removeItem(db, userId, productId),
+    mergeGuestCart: (userId, input) => mergeGuestCart(db, userId, input),
   };
 }
 
