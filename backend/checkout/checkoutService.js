@@ -16,6 +16,7 @@
 const { buildCartView } = require("../cart/cartStore");
 const { toMinorUnits, formatMinorUnits } = require("../cart/cartMath");
 const { requestHash } = require("./validateCheckout");
+const { issueInvoice } = require("../invoices/invoiceStore");
 
 class CheckoutConflict extends Error {
   constructor(code, message, cart) {
@@ -192,6 +193,9 @@ async function createOrder(trx, { userId, requestId, chargedTotal, deliveryAddre
     .where({ cart_id: cartId })
     .whereIn("product_id", rows.map((r) => r.productId))
     .del();
+
+  // SCRUM-36: issued in the same transaction, so every paid order has exactly one invoice
+  await issueInvoice(trx, orderId);
 
   const order = await trx("orders").where({ id: orderId }).first();
   const items = await trx("order_items").where({ order_id: orderId }).orderBy("id");
