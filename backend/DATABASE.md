@@ -68,6 +68,7 @@ Migrations in `db/migrations/`, applied in order:
 | `20261110000004_create_orders` | `orders`, `order_items`, `checkout_requests` |
 | `20261110000005_create_sessions` | `sessions` (login sessions, SCRUM-23) |
 | `20261113000001_add_response_to_cart_merge_requests` | `cart_merge_requests.response_body`: adjustments of a guest-cart merge, returned again on a retry (SCRUM-32) |
+| `20261114000001_create_invoices` | `invoices`: one per order (`order_id` UNIQUE), buyer snapshot and email delivery state (SCRUM-36) |
 
 ```mermaid
 erDiagram
