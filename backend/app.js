@@ -68,13 +68,16 @@ function createApp({
 
   // GET /cart, POST /cart/items, PUT and DELETE /cart/items/:productId (SCRUM-28)
   app.use("/cart", createCartRouter({ db }));
-
   // SCRUM-36: email the invoice after a new order. Runs after the response; a mail
   // problem is stored on the invoice and never reaches the customer as a failed checkout.
-  const emailInvoice = (orderId) =>
+  // Without an SMTP server nothing is attempted: the email stays "pending", and
+  // POST /orders/:id/invoice/email reports MAIL_NOT_CONFIGURED.
+  const emailInvoice = (orderId) => {
+    if (!mailer.configured) return;
     sendInvoiceEmail(db, mailer, orderId).catch((err) =>
       console.error(`Invoice email for order ${orderId} failed: ${err.code || err.name}`)
     );
+  };
 
   // POST /checkout with mock (test) payment (SCRUM-34)
   app.use("/checkout", createCheckoutRouter({ db, bank, hooks: checkoutHooks, onOrderCreated: emailInvoice }));
