@@ -9,16 +9,33 @@ const { createOrderRouter, createDeliveryRouter } = require("./orders/orderRoute
 const { createMockBank } = require("./payment/mockBank");
 const { errorHandler } = require("./http/errorHandler");
 const { createProductRouter, PAGINATION_HEADERS } = require("./products/productRoutes");
+const { createInvoiceRouter } = require("./invoices/invoiceRoutes");
+const { createMailer } = require("./invoices/mailer");
+const { sendInvoiceEmail } = require("./invoices/invoiceEmail");
 
-// bank defaults to the test-only mock bank; tests may pass their own
-function createApp({ db, config, sessionStore, bank = createMockBank(), checkoutHooks = {} }) {
+// bank defaults to the test-only mock bank; tests may pass their own bank and mailer
+function createApp({
+  db,
+  config,
+  sessionStore,
+  bank = createMockBank(),
+  checkoutHooks = {},
+  mailer = createMailer(config.smtp),
+}) {
   const app = express();
 
   // FRONTEND_ORIGIN may list several origins, comma-separated (Vite dev server and preview)
   const allowedOrigins = config.frontendOrigin.split(",").map((origin) => origin.trim());
   // credentials: true lets the frontend send the login cookie with fetch(..., { credentials: "include" })
   // exposedHeaders: browsers hide custom response headers from JavaScript unless they are listed here
-  app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: PAGINATION_HEADERS }));
+  // Content-Disposition carries the invoice PDF file name (SCRUM-36)
+  app.use(
+    cors({
+      origin: allowedOrigins,
+      credentials: true,
+      exposedHeaders: [...PAGINATION_HEADERS, "Content-Disposition"],
+    })
+  );
   app.use(express.json());
   app.use(
     createSessionMiddleware({
@@ -52,12 +69,22 @@ function createApp({ db, config, sessionStore, bank = createMockBank(), checkout
   // GET /cart, POST /cart/items, PUT and DELETE /cart/items/:productId (SCRUM-28)
   app.use("/cart", createCartRouter({ db }));
 
+  // SCRUM-36: email the invoice after a new order. Runs after the response; a mail
+  // problem is stored on the invoice and never reaches the customer as a failed checkout.
+  const emailInvoice = (orderId) =>
+    sendInvoiceEmail(db, mailer, orderId).catch((err) =>
+      console.error(`Invoice email for order ${orderId} failed: ${err.code || err.name}`)
+    );
+
   // POST /checkout with mock (test) payment (SCRUM-34)
-  app.use("/checkout", createCheckoutRouter({ db, bank, hooks: checkoutHooks }));
+  app.use("/checkout", createCheckoutRouter({ db, bank, hooks: checkoutHooks, onOrderCreated: emailInvoice }));
 
   // GET /orders, GET /orders/:id (customers); PATCH /orders/:id/status, GET /deliveries (product managers) (SCRUM-35)
   app.use("/orders", createOrderRouter({ db }));
   app.use("/deliveries", createDeliveryRouter({ db }));
+
+  // GET /orders/:id/invoice, GET /orders/:id/invoice/pdf, POST /orders/:id/invoice/email (SCRUM-36)
+  app.use("/orders", createInvoiceRouter({ db, mailer }));
 
   // Must stay after all routes: unhandled errors become { error: { code, message } }
   app.use(errorHandler);

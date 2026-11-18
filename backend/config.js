@@ -29,7 +29,20 @@ const dbPort = Number(process.env.DB_PORT);
 if (!Number.isInteger(dbPort) || dbPort <= 0) {
   throw new Error("DB_PORT must be a positive integer (MySQL default is 3306).");
 }
-
+// Invoice email (SCRUM-36). Optional: without SMTP_HOST the app runs normally and
+// invoice emails are recorded as failed (MAIL_NOT_CONFIGURED) until a server is set.
+// Tests never use SMTP; they pass a fake mailer.
+function readSmtp() {
+  if (isTest || !process.env.SMTP_HOST) return null;
+  return {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 1025,
+    secure: process.env.SMTP_SECURE === "true",
+    user: process.env.SMTP_USER || undefined,
+    password: process.env.SMTP_PASSWORD || undefined,
+    from: process.env.MAIL_FROM || "DOBBY Audiophile House <no-reply@dobby.test>",
+  };
+}
 module.exports = {
   isTest,
   isProduction,
@@ -45,4 +58,5 @@ module.exports = {
     // Tests always use the separate test database
     database: isTest ? process.env.DB_NAME_TEST : process.env.DB_NAME,
   },
+  smtp: readSmtp(),
 };
