@@ -26,11 +26,11 @@ Example signup fixture (fictional): {"name":"Demo Customer","taxId":"12345678901
 
 ## Commerce endpoints in the integration candidate
 
-These are implemented by the open PRs below; merge them in the order recorded in sprint-2-release.md. They are not all on main yet.
+These are implemented by the PRs below, all merged to main (checked 13 November 2026).
 
 | Method/path | Request | Success | Owner PR |
 | --- | --- | --- | --- |
-| POST /cart/merge | {requestKey,items:[{productId,quantity}]} | {cart,adjustments,replayed} | #25 (already merged) |
+| POST /cart/merge | {requestKey,items:[{productId,quantity}]} | {cart,adjustments,replayed}; errors 400 VALIDATION_ERROR, 401, 403, 422 REQUEST_KEY_REUSED | #25 |
 | POST /checkout | {requestKey,expectedTotal,deliveryAddress,payment:{cardholderName,cardNumber,expiryMonth,expiryYear,cvc}} | 201 {order} | #22 |
 | POST /checkout/attempts/:key/resolve | none; customer session | {phase:"pending"}, {phase:"succeeded",order}, or {phase:"failed",error} | #22 recovery fix |
 | GET /orders | customer session | {orders:[{id,createdAt,total,currency,status}]} | #23 |
@@ -50,9 +50,17 @@ Reload recovery stores only an account-scoped request key, never card details. T
 
 Order fields: id, status, createdAt, inTransitAt, deliveredAt, deliveryAddress, total, currency, paymentMode, paymentReference, cardLast4, items[{productId,productName,productModel,unitPrice,quantity,lineTotal}]. Order snapshots do not change when current products or addresses change. Missing/other-customer orders both return 404 ORDER_NOT_FOUND. Delivery transitions are processing -> in_transit -> delivered; invalid transitions return 409 INVALID_STATUS_TRANSITION. Guests receive 401 and wrong roles 403.
 
-## Invoice dependency (SCRUM-36)
+## Invoices (SCRUM-36)
 
-Protected invoice/PDF endpoints and test-mailbox delivery are not implemented by these PRs. No endpoint or delivery success is assumed. Checkout displays an order summary and explicitly states that invoice PDF/email is unavailable. The owner must agree the final invoice contract before SCRUM-18 is fully accepted.
+Contract set by the SCRUM-36 owner (Bartu). Implemented in the SCRUM-36 PR; details in README section "Invoices (PDF and email)".
+
+| Method/path | Request | Success |
+| --- | --- | --- |
+| GET /orders/:id/invoice | owner customer or sales_manager session | {invoice:{number,orderId,orderedAt,issuedAt,customer:{name,email,taxId},deliveryAddress,items,total,currency,email}} |
+| GET /orders/:id/invoice/pdf | same | application/pdf attachment, filename "<number>.pdf" |
+| POST /orders/:id/invoice/email | same; no body | {email}; resends only if the last attempt failed |
+
+email is {status:"pending"|"sending"|"sent"|"failed",attempts,lastAttemptAt,sentAt,lastError}; lastError is a short code (e.g. ECONNREFUSED, MAIL_NOT_CONFIGURED) or null. Guests get 401, other roles 403; missing and other-customer orders both return 404 ORDER_NOT_FOUND. The checkout 201 response is unchanged: one invoice is issued in the checkout transaction and the email is sent after the response, so its status starts as pending. A mail failure never undoes the purchase. Frontend: after checkout and on the order detail page, offer "Download invoice (PDF)" (fetch with credentials, save the blob) and show the email status from GET /orders/:id/invoice, with a retry button when it is failed.
 
 ## Frontend integration handoff
 SessionProvider owns session loading, failure, authenticated and anonymous states. Protected routes are /profile, /checkout, /orders and /orders/:id. Public routes are /, /login, /register, /cart, /products/:id. The integration candidate mounts the product, cart, checkout and order pages. Main remains dependent on their PR merges.
