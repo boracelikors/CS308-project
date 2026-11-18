@@ -433,6 +433,29 @@ curl -b pm.txt -X PATCH -H "Content-Type: application/json" -d '{"status":"in_tr
 
 Code: `backend/orders/`. Tests: `npm test` (`test/orderRoutes.test.js`) and `npm run test:db` (`db-tests/ordersFlow.spec.js`).
 
+### Invoices (PDF and email)
+
+**Status:** Implemented (SCRUM-36). Every paid order gets exactly one invoice, issued in the same transaction as the order. It is built from the order snapshot (purchase-time prices, delivery address) plus the buyer's name, email and tax ID at that moment; later price or profile changes never alter it.
+
+| Endpoint | Response |
+| --- | --- |
+| `GET /orders/:id/invoice` | `200 { invoice: { number, orderId, orderedAt, issuedAt, customer: { name, email, taxId }, deliveryAddress, items: [{ productId, productName, productModel, unitPrice, quantity, lineTotal }], total, currency, email } }` |
+| `GET /orders/:id/invoice/pdf` | The PDF (`Content-Type: application/pdf`, `Content-Disposition: attachment; filename="INV-2026-000042.pdf"`, `Cache-Control: private, no-store`) |
+| `POST /orders/:id/invoice/email` | Sends the email again if the last attempt failed. `200 { email }`. An invoice that was already sent is not sent again |
+
+`email` is `{ status, attempts, lastAttemptAt, sentAt, lastError }`. `status` is `pending`, `sending`, `sent` or `failed`. `lastError` is a short code such as `ECONNREFUSED` or `MAIL_NOT_CONFIGURED`, never a message.
+
+- **Who can see an invoice:** the customer who owns the order, and sales managers. Guests get `401`, other roles `403`. A missing order and another customer's order both return `404 ORDER_NOT_FOUND`.
+- **Email:** sent after the checkout answer, with the PDF attached. A mail problem never undoes the purchase; it is only recorded as `failed` and can be retried. Simultaneous retries send one email.
+- **PDF:** generated in memory on each request, never saved to disk or to a public folder. DejaVu Sans is embedded so Turkish letters (ş, ğ, ı, İ) print correctly. Amounts are exact decimal strings, never floats.
+- **Logs:** no SMTP passwords, addresses, invoice or card data are logged.
+
+**Test mailbox (development):** install [Mailpit](https://mailpit.axllent.org/docs/install/) and run `mailpit`. It accepts mail on port 1025 and shows the inbox at http://localhost:8025. Then add the SMTP lines from `backend/.env.example` to `backend/.env` and restart the backend. Without `SMTP_HOST`, everything else works: no email is attempted, the status stays `pending`, and `POST /orders/:id/invoice/email` answers `failed` with `MAIL_NOT_CONFIGURED`.
+
+> A message in the test mailbox is development evidence only. Delivery to real recipients needs a real mail service configured in `SMTP_*` and has to be verified separately.
+
+Code: `backend/invoices/`. Tests: `npm test` (`test/invoiceFormat.test.js`, `test/invoicePdf.test.js`, `test/invoiceRoutes.test.js`) and `npm run test:db` (`db-tests/invoiceFlow.spec.js`).
+
 ## 10. In what order should we work?
 
 1. **Onur** creates the backend foundation.

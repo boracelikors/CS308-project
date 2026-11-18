@@ -6,8 +6,9 @@ const { requireRole } = require("../auth/guards");
 const { validateCheckout, validateIdempotencyKey } = require("./validateCheckout");
 const checkoutService = require("./checkoutService");
 
-// service and hooks are injectable for tests
-function createCheckoutRouter({ db, bank, service = checkoutService, hooks = {} }) {
+// service and hooks are injectable for tests.
+// onOrderCreated(orderId) runs after a new order has been answered (SCRUM-36: invoice email).
+function createCheckoutRouter({ db, bank, service = checkoutService, hooks = {}, onOrderCreated = () => {} }) {
   const router = express.Router();
   router.use(requireRole("customer")); // 401 for guests, 403 for staff accounts
 
@@ -32,7 +33,9 @@ function createCheckoutRouter({ db, bank, service = checkoutService, hooks = {} 
         hooks,
       });
       if (result.replayed) res.set("Idempotent-Replayed", "true");
-      return res.status(result.status).json(result.body);
+      res.status(result.status).json(result.body);
+      // Only for a new order, never for a replayed answer: one order, one email
+      if (result.status === 201 && !result.replayed) onOrderCreated(result.body.order.id);
     } catch (err) {
       // Only the error code/type is logged: a message could contain request data
       return next(new Error(`Checkout failed: ${err.code || err.name}`));

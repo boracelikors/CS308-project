@@ -96,6 +96,8 @@ These run in CI as soon as each feature is merged. They live with the feature th
 | Duplicate / concurrent checkout creates one order | `checkoutFlow.spec.js` "two simultaneous submits with the same key" (SCRUM-34) |
 | Last unit at checkout, stock never negative | `checkoutFlow.spec.js` "two customers competing for the last unit" (SCRUM-34) |
 | Login rate limit, session isolation | `authFlow.spec.js` |
+| One invoice per order, also on checkout replay | `invoiceFlow.spec.js` "a paid order gets exactly one invoice" (SCRUM-36) |
+| Mail failure keeps the purchase; concurrent retries send once | `invoiceFlow.spec.js` "a mail failure keeps the purchase", "five retries at the same time" (SCRUM-36) |
 
 ## Counting tests for the sprint report
 

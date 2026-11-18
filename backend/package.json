@@ -17,8 +17,7 @@
     "db:reset:test": "cross-env NODE_ENV=test node db/reset-dev.js",
     "seed": "knex seed:run",
     "seed:test": "cross-env NODE_ENV=test knex seed:run",
-     "test:count": "node ../scripts/count-tests.js"
-
+    "test:count": "node ../scripts/count-tests.js"
   },
   "keywords": [],
   "author": "",
@@ -27,14 +26,18 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "dejavu-fonts-ttf": "^2.37.3",
     "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "express-session": "^1.19.0",
     "knex": "^3.3.0",
-    "mysql2": "^3.24.6"
+    "mysql2": "^3.24.6",
+    "nodemailer": "^10.5.0",
+    "pdfkit": "^0.20.2"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "pdf-parse": "^2.4.5"
   }
 }
