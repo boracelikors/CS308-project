@@ -321,6 +321,10 @@ export default function ProductDetailPage({ productId }) {
                 <dd className="spec-value">{category}</dd>
               </div>
               <div className="spec-row">
+                <dt className="spec-label">Product ID</dt>
+                <dd className="spec-value">{id}</dd>
+              </div>
+              <div className="spec-row">
                 <dt className="spec-label">Model</dt>
                 <dd className="spec-value">{model || '—'}</dd>
               </div>
