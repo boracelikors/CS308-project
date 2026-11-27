@@ -1,5 +1,6 @@
 import ProductReviews from '../reviews/ProductReviews.jsx'
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCart } from '../cart/cartContext.js'
 import { formatPrice } from '../utils/formatPrice.js'
 import {
@@ -179,9 +180,9 @@ export default function ProductDetailPage({ productId }) {
           <p>
             The product you requested (ID: {productId}) does not exist or has been removed from sale.
           </p>
-          <a href="/" className="collection-link">
+          <Link to="/" className="collection-link">
             ← Return to catalogue
-          </a>
+          </Link>
         </div>
       </div>
     )
@@ -258,9 +259,9 @@ export default function ProductDetailPage({ productId }) {
     <div className="product-detail-page">
       {/* Breadcrumb Navigation */}
       <nav className="detail-breadcrumb" aria-label="Breadcrumb">
-        <a href="/" className="detail-back-link">
+        <Link to="/" className="detail-back-link">
           ← Back to collection
-        </a>
+        </Link>
       </nav>
 
       <article className="product-detail-layout" aria-labelledby="detail-title">
@@ -306,6 +307,9 @@ export default function ProductDetailPage({ productId }) {
             <span className="detail-price">
               {formattedPrice} <span className="currency">{currency}</span>
             </span>
+            <a className="detail-reviews-jump" href="#reviews">
+              Customer reviews ↓
+            </a>
           </div>
 
           <div className="detail-description-section">
