@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { formatDate, formatMoney } from '../format.js'
 import { statusLabel } from './orderLogic.js'
 import { fetchOrders } from './ordersApi.js'
@@ -28,12 +29,12 @@ export default function OrderHistoryPage({ user }) {
       <ul className="order-list">
         {orders.data.map((order) => (
           <li key={order.id}>
-            <a className="order-row" href={`/orders/${order.id}`}>
+            <Link className="order-row" to={`/orders/${order.id}`}>
               <span className="order-ref">Order #{order.id}</span>
               <span>{formatDate(order.createdAt)}</span>
               <span>{formatMoney(order.total, order.currency)}</span>
               <span className={`order-status order-status--${order.status}`}>{statusLabel(order.status)}</span>
-            </a>
+            </Link>
           </li>
         ))}
       </ul>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCart } from '../cart/cartContext.js'
 import { formatPrice } from '../utils/formatPrice.js'
 import {
@@ -343,18 +344,15 @@ export default function CartPage() {
             )}
 
             {/* Checkout Button */}
-            <a
-              href={checkoutCheck.allowed ? checkoutDest.url : '#'}
-              className={`checkout-btn ${!checkoutCheck.allowed ? 'checkout-btn--disabled' : ''}`}
-              aria-disabled={!checkoutCheck.allowed}
-              onClick={(e) => {
-                if (!checkoutCheck.allowed) {
-                  e.preventDefault()
-                }
-              }}
-            >
-              {checkoutDest.label} →
-            </a>
+            {checkoutCheck.allowed ? (
+              <Link to={checkoutDest.url} className="checkout-btn">
+                {checkoutDest.label} →
+              </Link>
+            ) : (
+              <button type="button" className="checkout-btn checkout-btn--disabled" disabled>
+                {checkoutDest.label} →
+              </button>
+            )}
 
             <p className="summary-tax-note">Taxes and shipping calculated at checkout.</p>
           </div>
