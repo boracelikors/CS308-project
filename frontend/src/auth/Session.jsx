@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { api } from '../api.js'
 import { Context, useSession } from './context.js'
 export function SessionProvider({ children }) {
@@ -27,10 +27,26 @@ export function SessionProvider({ children }) {
   async function logout() { await api('/auth/logout', {method:'POST'}); clear() }
   return <Context.Provider value={{...state, refresh, login, logout}}>{children}</Context.Provider>
 }
-export function Protected({children}) {
-  const {status, refresh} = useSession(); const location = useLocation()
-  if(status === 'loading') return <p role="status">Checking your session…</p>
-  if(status === 'error') return <div role="alert">Could not check your session. <button onClick={refresh}>Retry</button></div>
-  if(status !== 'authenticated') return <Navigate replace to={'/login?returnTo='+encodeURIComponent(location.pathname+location.search)} />
+export function Protected({ children, requiredRole }) {
+  const { status, user, refresh } = useSession()
+  const location = useLocation()
+
+  if (status === 'loading') return <p role="status">Checking your session…</p>
+  if (status === 'error') {
+    return <div role="alert">Could not check your session. <button onClick={refresh}>Retry</button></div>
+  }
+  if (status !== 'authenticated') {
+    const returnTo = encodeURIComponent(location.pathname + location.search + location.hash)
+    return <Navigate replace to={`/login?returnTo=${returnTo}`} />
+  }
+  if (requiredRole && user?.role !== requiredRole) {
+    return (
+      <main className="account-panel">
+        <h1>Access denied</h1>
+        <p>This page is unavailable for your account. Sign out to use a different account.</p>
+        <Link to="/">Back to the collection</Link>
+      </main>
+    )
+  }
   return children
 }
