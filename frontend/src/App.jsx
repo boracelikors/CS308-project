@@ -1,3 +1,7 @@
+import { BrowserRouter, Link, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { SessionProvider, Protected } from './auth/Session.jsx'
+import { AccountForm, Profile } from './auth/Account.jsx'
+import ManagerHome from './manager/ManagerHome.jsx'
 import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
 import ProductCatalog from './components/ProductCatalog.jsx'
@@ -44,18 +48,43 @@ export function Home() {
   )
 }
 
-import { BrowserRouter, Link, Route, Routes, useParams } from 'react-router-dom'
-import { SessionProvider, Protected } from './auth/Session.jsx'
-import { AccountForm, Profile } from './auth/Account.jsx'
-function ProductRoute() { const {id} = useParams(); return <ProductDetailPage key={id} productId={id}/> }
-function OrderRoute({user}) { const {id} = useParams(); return <OrderDetailPage user={user} orderIdParam={id}/> }
-function ShoppingApp() { const {user, status} = useSession(); if (status === 'loading') return <p role="status">Checking your session…</p>; return <CartProvider key={user?.id ?? 'guest'} user={user}><Header/><MergeNotice/><Routes>
-<Route path="/" element={<Home/>}/><Route path="/login" element={<AccountForm key="login"/>}/><Route path="/register" element={<AccountForm key="register" register/>}/>
-<Route path="/profile" element={<Protected><Profile/></Protected>}/>
-<Route path="/orders" element={<Protected><OrderHistoryPage user={user}/></Protected>}/>
-<Route path="/orders/:id" element={<Protected><OrderRoute user={user}/></Protected>}/>
-<Route path="/checkout" element={<Protected><CheckoutPage user={user} defaultAddress={user?.homeAddress}/></Protected>}/>
-<Route path="/cart" element={<CartPage/>}/><Route path="/products/:id" element={<ProductRoute/>}/>
-<Route path="*" element={<section className="account-panel"><h1>Page not found</h1><Link to="/">Return home</Link></section>}/>
-</Routes></CartProvider> }
-export default function App() { return <BrowserRouter><SessionProvider><ShoppingApp/></SessionProvider></BrowserRouter> }
+function ProductRoute() {
+  const { id } = useParams()
+  return <ProductDetailPage key={id} productId={id} />
+}
+
+function OrderRoute({ user }) {
+  const { id } = useParams()
+  return <OrderDetailPage user={user} orderIdParam={id} />
+}
+
+function ShoppingApp() {
+  const { user, status } = useSession()
+  if (status === 'loading') return <p role="status">Checking your session…</p>
+
+  return (
+    <CartProvider key={user?.id ?? 'guest'} user={user}>
+      <Header />
+      <MergeNotice />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<AccountForm key="login" />} />
+        <Route path="/register" element={<AccountForm key="register" register />} />
+        <Route path="/profile" element={<Protected><Profile /></Protected>} />
+        <Route path="/orders" element={<Protected><OrderHistoryPage user={user} /></Protected>} />
+        <Route path="/orders/:id" element={<Protected><OrderRoute user={user} /></Protected>} />
+        <Route path="/checkout" element={<Protected><CheckoutPage user={user} defaultAddress={user?.homeAddress} /></Protected>} />
+        <Route path="/manager" element={<Protected requiredRole="product_manager"><Outlet /></Protected>}>
+          <Route index element={<ManagerHome />} />
+        </Route>
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/products/:id" element={<ProductRoute />} />
+        <Route path="*" element={<section className="account-panel"><h1>Page not found</h1><Link to="/">Return home</Link></section>} />
+      </Routes>
+    </CartProvider>
+  )
+}
+
+export default function App() {
+  return <BrowserRouter><SessionProvider><ShoppingApp /></SessionProvider></BrowserRouter>
+}
