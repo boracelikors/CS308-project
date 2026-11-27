@@ -1124,3 +1124,29 @@
 .invoice-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .invoice-actions button { padding: .7rem 1rem; cursor: pointer; max-width: 100%; }
 .invoice-actions button:disabled { cursor: wait; opacity: .6; }
+
+.product-reviews, .manager-page {
+  width: min(100% - 2 * var(--page-gutter), 850px);
+  margin: 2rem auto;
+  color: var(--color-text);
+}
+.product-reviews { border-top: 1px solid currentColor; padding-top: 1.25rem; }
+.manager-nav, .manager-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.manager-nav { margin-bottom: 1rem; }
+.manager-nav a { padding: .5rem 0; text-decoration: underline; text-underline-offset: .2em; }
+.manager-nav a[aria-current="page"] { font-weight: 700; }
+.review-list, .manager-list { padding: 0; list-style: none; }
+.review-list > li, .manager-list > li, .review-editor {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-text-muted);
+  background: var(--color-surface);
+  border-radius: .75rem;
+}
+.review-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.review-meta { color: var(--color-text-muted); font-size: .875rem; }
+.review-editor form { display: grid; gap: .5rem; margin: 1rem 0; }
+.review-editor select, .review-editor textarea { width: 100%; padding: .5rem; font: inherit; }
+.review-editor button, .manager-page button { justify-self: start; padding: .5rem .75rem; font: inherit; }
+.review-editor :is(select, textarea):focus-visible { outline: 3px solid #2a66c4; outline-offset: 3px; }
+.manager-items { padding-left: 1.5rem; margin: 1rem 0; }
