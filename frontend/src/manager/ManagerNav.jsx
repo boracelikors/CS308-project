@@ -6,6 +6,7 @@ export default function ManagerNav() {
       <NavLink end to="/manager">Overview</NavLink>
       <NavLink to="/manager/deliveries">Deliveries</NavLink>
       <NavLink to="/manager/comments">Comments</NavLink>
+      <NavLink to="/manager/stock">Stock</NavLink>
     </nav>
   )
 }
