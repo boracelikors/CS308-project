@@ -8,7 +8,7 @@ const manager = { id: 10, name: 'Demo Manager', role: 'product_manager' }
 const customer = { id: 11, name: 'Demo Customer', role: 'customer' }
 
 function reply(status, body) {
-  return { ok: status < 400, status, json: async () => body }
+  return status === 204 ? new Response(null, { status }) : Response.json(body, { status })
 }
 
 function mount({ user, path = '/manager', loginAs = manager } = {}) {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { apiRequest } from '../api/request.js'
+import { ApiError, apiRequest } from '../api/request.js'
 import { useAccountResource } from '../orders/useAccountResource.js'
 
 // Remount for each account/order so no invoice or in-flight result crosses accounts.
@@ -8,7 +8,13 @@ export default function InvoicePanel({ userId, orderId }) {
 }
 
 function InvoiceContent({ userId, orderId }) {
-  const load = useCallback(async (signal) => (await apiRequest(`/orders/${orderId}/invoice`, { signal })).invoice, [orderId])
+  const load = useCallback(async (signal) => {
+    const data = await apiRequest(`/orders/${orderId}/invoice`, { signal })
+    if (typeof data?.invoice?.number !== 'string' || !data.invoice.number.trim()) {
+      throw new ApiError('BAD_RESPONSE', 'The store did not return an invoice.', { status: 500 })
+    }
+    return data.invoice
+  }, [orderId])
   const invoice = useAccountResource(`${userId}:invoice:${orderId}`, load)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

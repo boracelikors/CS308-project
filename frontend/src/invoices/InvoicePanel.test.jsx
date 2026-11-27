@@ -48,3 +48,14 @@ test('switching accounts cancels an invoice download before it can save', async 
  expect(originalSignal.aborted).toBe(true)
  expect(screen.queryByText('Invoice INV-42')).toBeNull()
 })
+
+test('an unexpected success response offers retry without crashing the order page', async () => {
+  vi.stubGlobal('fetch', vi.fn()
+    .mockResolvedValueOnce(Response.json({ order: { id: 42 } }))
+    .mockResolvedValueOnce(reply('sent')))
+  render(<InvoicePanel userId={1} orderId={42} />)
+  const retry = await screen.findByRole('button', { name: 'Retry invoice' })
+  expect(screen.queryByRole('button', { name: 'Download invoice PDF' })).toBeNull()
+  fireEvent.click(retry)
+  expect(await screen.findByText('Invoice email sent.')).toBeTruthy()
+})
