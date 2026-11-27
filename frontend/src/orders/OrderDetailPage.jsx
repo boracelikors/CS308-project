@@ -1,23 +1,22 @@
 import InvoicePanel from '../invoices/InvoicePanel.jsx'
 import { useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { formatDate, formatMoney } from '../format.js'
 import { deliverySteps, parseOrderId, statusLabel } from './orderLogic.js'
 import { fetchOrder } from './ordersApi.js'
 import { OrdersMessage } from './OrdersMessage.jsx'
 import { useAccountResource } from './useAccountResource.js'
 
-// /orders/:id for the signed-in customer (SCRUM-39). Not routed yet: mount once SCRUM-18 adds routes.
-// orderIdParam is the raw URL segment. No cancel/return actions until those workflows exist;
-// the invoice download is added with SCRUM-36.
+// orderIdParam is the raw URL segment for the signed-in customer’s order.
 export default function OrderDetailPage({ user, orderIdParam }) {
   const orderId = parseOrderId(orderIdParam)
   const key = user?.role === 'customer' && orderId !== null ? `customer:${user.id}:order:${orderId}` : null
   const load = useCallback((signal) => fetchOrder(orderId, signal), [orderId])
   const order = useAccountResource(key, load)
   const backLink = (
-    <a className="orders-back" href="/orders">
+    <Link className="orders-back" to="/orders">
       ← All orders
-    </a>
+    </Link>
   )
 
   if (user?.role !== 'customer') return <OrdersMessage title="Please sign in to see this order" />
@@ -61,7 +60,7 @@ export default function OrderDetailPage({ user, orderIdParam }) {
           {data.items.map((item) => (
             <li key={item.productId}>
               <span>
-                {item.productName} × {item.quantity}
+                <Link className="order-product-link" to={`/products/${item.productId}`}>{item.productName}</Link>{' '}× {item.quantity}
                 <span className="order-unit-price"> ({formatMoney(item.unitPrice, data.currency)} each at purchase)</span>
               </span>
               <span>{formatMoney(item.lineTotal, data.currency)}</span>
