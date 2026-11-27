@@ -1,3 +1,4 @@
+import ProductReviews from '../reviews/ProductReviews.jsx'
 import { useCallback, useEffect, useState } from 'react'
 import { useCart } from '../cart/cartContext.js'
 import { formatPrice } from '../utils/formatPrice.js'
@@ -431,6 +432,7 @@ export default function ProductDetailPage({ productId }) {
           </div>
         </div>
       </article>
+      <ProductReviews productId={id} />
     </div>
   )
 }

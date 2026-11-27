@@ -9,6 +9,7 @@ const { createOrderRouter, createDeliveryRouter } = require("./orders/orderRoute
 const { createMockBank } = require("./payment/mockBank");
 const { errorHandler } = require("./http/errorHandler");
 const { createProductRouter, PAGINATION_HEADERS } = require("./products/productRoutes");
+const { createReviewRouter, createModerationRouter } = require("./reviews/reviewRoutes");
 const { createInvoiceRouter } = require("./invoices/invoiceRoutes");
 const { createMailer } = require("./invoices/mailer");
 const { sendInvoiceEmail } = require("./invoices/invoiceEmail");
@@ -62,6 +63,8 @@ function createApp({
 
   // GET /products (search, category filter, sort, pagination) and GET /products/:id, from MySQL
   app.use("/products", createProductRouter({ db }));
+  app.use("/products", createReviewRouter({ db }));
+  app.use("/manager/comments", createModerationRouter({ db }));
 
   // POST /auth/register (SCRUM-22); POST /auth/login, POST /auth/logout, GET /auth/me (SCRUM-23)
   app.use("/auth", createAuthRouter({ db, secureCookie: config.isProduction }));

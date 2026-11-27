@@ -1,6 +1,7 @@
 import { BrowserRouter, Link, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { SessionProvider, Protected } from './auth/Session.jsx'
 import { AccountForm, Profile } from './auth/Account.jsx'
+import ManagerPage from './manager/ManagerPage.jsx'
 import ManagerHome from './manager/ManagerHome.jsx'
 import Header from './components/Header.jsx'
 import ProductSection from './components/ProductSection.jsx'
@@ -76,6 +77,8 @@ function ShoppingApp() {
         <Route path="/checkout" element={<Protected><CheckoutPage user={user} defaultAddress={user?.homeAddress} /></Protected>} />
         <Route path="/manager" element={<Protected requiredRole="product_manager"><Outlet /></Protected>}>
           <Route index element={<ManagerHome />} />
+          <Route path="deliveries" element={<ManagerPage key="deliveries" kind="deliveries" />} />
+          <Route path="comments" element={<ManagerPage key="comments" kind="comments" />} />
         </Route>
         <Route path="/cart" element={<CartPage />} />
         <Route path="/products/:id" element={<ProductRoute />} />
