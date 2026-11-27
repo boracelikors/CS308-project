@@ -50,8 +50,9 @@ async function resetTestDatabase({ seed = true } = {}) {
 
 // Starts the real Express app with MySQL sessions on a free port chosen by the OS.
 // request() returns { status, headers, body, cookie } and never throws on 4xx/5xx.
-async function startTestApp() {
-  const app = createApp({ db, config, sessionStore: new KnexSessionStore({ db, cleanupIntervalMs: 0 }) });
+// options are passed to createApp, e.g. { mailer } for a fake mailbox (SCRUM-36)
+async function startTestApp(options = {}) {
+  const app = createApp({ db, config, sessionStore: new KnexSessionStore({ db, cleanupIntervalMs: 0 }), ...options });
   const server = await new Promise((resolve) => {
     const s = app.listen(0, () => resolve(s));
   });
