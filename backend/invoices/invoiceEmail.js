@@ -36,12 +36,12 @@ async function claimSend(db, orderId) {
 function messageFor(invoice, pdf) {
   return {
     to: invoice.customer.email,
-    subject: `Your DOBBY Audophile House invoice ${invoice.number}`,
+    subject: `Your DOBBY Audiophile House invoice ${invoice.number}`,
     text:
       `Hello ${invoice.customer.name},\n\n` +
       `Thank you for your order #${invoice.orderId}. Your invoice ${invoice.number} is attached as a PDF.\n` +
       `Total: ${invoice.total} ${invoice.currency}\n\n` +
-      "You can also download it any time from your order page.\n\nDOBBY Audophile House",
+      "You can also download it any time from your order page.\n\nDOBBY Audiophile House",
     attachments: [{ filename: `${invoice.number}.pdf`, content: pdf, contentType: "application/pdf" }],
   };
 }

@@ -1,4 +1,4 @@
-# DOBBY Audophile House
+# DOBBY Audiophile House
 
 We are CS308 Group 13. We are building an online store for audio equipment.
 

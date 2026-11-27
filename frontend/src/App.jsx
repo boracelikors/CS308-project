@@ -43,7 +43,7 @@ export function Home() {
         </ProductSection>
       </main>
       <footer className="site-footer">
-        <a className="footer-brand" href="#top">DOBBY Audophile House</a>
+        <a className="footer-brand" href="#top">DOBBY Audiophile House</a>
         <p>CS308 · Group 13</p>
       </footer>
     </>

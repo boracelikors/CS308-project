@@ -8,7 +8,7 @@ const { formatAmount, formatDate } = require("./invoiceFormat");
 const FONT = require.resolve("dejavu-fonts-ttf/ttf/DejaVuSans.ttf");
 const FONT_BOLD = require.resolve("dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf");
 
-const STORE_NAME = "DOBBY Audophile House";
+const STORE_NAME = "DOBBY Audiophile House";
 const LEFT = 50;
 const RIGHT = 545; // A4 width (595) minus the margin
 // Table columns: product, quantity, unit price, line total

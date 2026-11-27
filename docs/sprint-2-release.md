@@ -77,7 +77,7 @@ PR: https://github.com/boracelikors/CS308-project/pull/26
 - Live browser against Express + MySQL: registration and confirmation mismatch, duplicate email rejection, incorrect/correct login, profile refresh persistence, logout, account switching, anonymous /checkout redirect and return after login all passed.
 - Stopped/restarted Express: /profile displayed the connection error without a false logout; Retry restored the existing persisted session.
 - Visual checks: profile at 1280px and 375px; registration at 375px. No horizontal overflow at 375px. Keyboard Tab moves between form fields; browser back/forward and direct protected links work.
-- Browser title is Audophile House. Initial asynchronous session loading no longer produces the lint warning.
+- Browser title is Audiophile House. Initial asynchronous session loading no longer produces the lint warning.
 - Test environment used separate frontend/backend/MySQL ports (5174/33026/33326), fictional accounts and ignored local configuration. Existing databases and the original checkout were untouched.
 
 ## Review and merge boundary

@@ -11,7 +11,7 @@ Open http://localhost:5173. Products come from the backend's `GET /products` (SC
 
 ## Components and Architecture
 
-- `src/components/Header.jsx`: DOBBY Audophile House branding and collection navigation.
+- `src/components/Header.jsx`: DOBBY Audiophile House branding and collection navigation.
 - `src/App.jsx`: homepage layout.
 - `src/components/ProductCatalog.jsx`: requests the products and shows the list, loading or error state.
 - `src/components/ProductSection.jsx`: accessible product section and an honest empty state. The `children` slot is for Demirhan's product list (SCRUM-9).
@@ -23,7 +23,7 @@ Open http://localhost:5173. Products come from the backend's `GET /products` (SC
 - `src/orders/`: order history and order detail pages, with loading scoped to the signed-in account (SCRUM-39).
 - `.env.example`: public API address, read with `import.meta.env.VITE_API_BASE_URL`.
 - `src/App.jsx`: React Router owns all page routes; the old path parser is retained only for pure rule tests.
-- `src/components/Header.jsx`: DOBBY Audophile House branding, collection navigation, and live cart item count badge.
+- `src/components/Header.jsx`: DOBBY Audiophile House branding, collection navigation, and live cart item count badge.
 - `src/components/CatalogControls.jsx`: accessible labelled search input, category selector, sorting options, and filter reset.
 - `src/components/ProductCatalog.jsx`: requests products with debounced search, category filters, sorting, URL query parameter persistence, and pagination.
 - `src/components/ProductCard.jsx`: product card showing exact formatted prices, fallback placeholders, out-of-stock badges, and direct link to product detail.
