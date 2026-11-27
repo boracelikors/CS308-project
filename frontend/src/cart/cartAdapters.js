@@ -15,10 +15,10 @@ import { browserStorage, loadGuestCart, saveGuestCart } from './guestCartStorage
 
 // GET /products is paginated by the catalogue API (SCRUM-24): at most 50 per page, with the
 // page count in the X-Total-Pages header. Without that header (Sprint 1 API) one call returns all.
-export async function fetchProducts({ fetch: fetchImpl = fetch, maxPages = 20 } = {}) {
+export async function fetchProducts({ fetch: fetchImpl = fetch, maxPages = 20, signal } = {}) {
   const products = []
   for (let page = 1; page <= maxPages; page += 1) {
-    const {data, headers} = await apiRequest(`/products?page=${page}&pageSize=50`, {fetch:fetchImpl, withResponse:true})
+    const {data, headers} = await apiRequest(`/products?page=${page}&pageSize=50`, {fetch:fetchImpl, withResponse:true, signal})
     products.push(...data)
     const totalPages = Number(headers.get('X-Total-Pages'))
     if (!Number.isInteger(totalPages) || page >= totalPages) break

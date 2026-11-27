@@ -30,3 +30,7 @@ Requests use signed session cookies. Guests receive `401` for private operations
 ## Checks
 
 Run `npm test` and `npm run test:db` in backend and `npm test`, `npm run lint`, `npm run build` in frontend. The review suite covers two accounts, two product outcomes, duplicate ratings, stale moderation edits and concurrent decisions.
+
+## Optional manager stock screen
+
+In the product manager area open **Stock**, select an active product, and enter its new nonnegative whole quantity. Saving sends `PATCH /manager/products/:id/stock` with `{quantity, expectedQuantity}`. The server updates the row only if its current quantity still matches the value the manager edited. A stale edit reports `409 STOCK_CHANGED` and refreshes the displayed quantity. Setting stock to zero keeps the item visible in the catalogue and prevents adding it to the cart. Use a demo database and restore the original quantity after showing the example.
