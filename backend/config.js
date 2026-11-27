@@ -40,7 +40,7 @@ function readSmtp() {
     secure: process.env.SMTP_SECURE === "true",
     user: process.env.SMTP_USER || undefined,
     password: process.env.SMTP_PASSWORD || undefined,
-    from: process.env.MAIL_FROM || "DOBBY Audiophile House <no-reply@dobby.test>",
+    from: process.env.MAIL_FROM || "DOBBY Audophile House <no-reply@dobby.test>",
   };
 }
 module.exports = {

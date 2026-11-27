@@ -1,3 +1,4 @@
+import InvoicePanel from '../invoices/InvoicePanel.jsx'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useCart } from '../cart/cartContext.js'
 import { formatMoney } from '../format.js'
@@ -44,11 +45,11 @@ export default function CheckoutPage({ user, defaultAddress = '' }) {
   if (user?.role !== 'customer') {
     return <CheckoutMessage title="Please sign in to check out">Your cart is kept while you sign in.</CheckoutMessage>
   }
-  if (recovery?.phase === 'succeeded') return <OrderConfirmation order={recovery.order}/>
+  if (recovery?.phase === 'succeeded') return <OrderConfirmation order={recovery.order} userId={user.id}/>
   if (recovery) return <CheckoutMessage title="Checking your previous checkout">
     {recovery.phase === 'failed' ? <><span>{recovery.error?.message || 'No order was placed.'}</span><button onClick={finishRecovery}>Return to checkout</button></> : <><span>The previous result is not confirmed yet. A new order is blocked to prevent duplicates.</span><button onClick={retryRecovery}>Check again</button></>}
   </CheckoutMessage>
-  if (attempt.phase === 'succeeded') return <OrderConfirmation order={attempt.order} />
+  if (attempt.phase === 'succeeded') return <OrderConfirmation order={attempt.order} userId={user.id} />
   if (cart.status === 'loading') return <CheckoutMessage title="Loading your cart..." />
   if (cart.status === 'error') {
     return <CheckoutMessage title="Your cart could not be loaded">{cart.error?.message}</CheckoutMessage>
@@ -295,13 +296,13 @@ function AttemptStatus({ attempt, checkout, onRetry, onReviewCart }) {
 }
 
 // Shown only after the backend has confirmed the order
-function OrderConfirmation({ order }) {
+function OrderConfirmation({ order, userId }) {
   return (
     <section className="checkout" aria-labelledby="checkout-title">
       <h1 id="checkout-title">Order #{order.id} placed</h1>
       <p role="status">Status: Processing. This was a test payment; no money was charged.</p>
       <div className="checkout-summary">
-        <h2>Order summary</h2><p>PDF invoice and email delivery are not available yet.</p>
+        <h2>Order summary</h2>
         <ul className="checkout-lines">
           {order.items?.map((item) => (
             <li key={item.productId}>
@@ -316,6 +317,8 @@ function OrderConfirmation({ order }) {
         </p>
         <p>Delivery address: {order.deliveryAddress}</p>
         {order.cardLast4 && <p>Paid with test card ending {order.cardLast4}</p>}
+        <a href={`/orders/${order.id}`}>View order and delivery status</a>
+        <InvoicePanel userId={userId} orderId={order.id} />
       </div>
     </section>
   )

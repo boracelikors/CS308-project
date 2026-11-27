@@ -1,14 +1,16 @@
-## Current Sprint 2 frontend branch
+# Current Sprint 2 application
 
-Account routes, cookie-session client and profile are implemented on this branch. See [run and verification steps](docs/sprint-2-release.md) and [API contract/handoff](docs/sprint-2-api.md). The historical Sprint 1 scope below is not a description of all current backend capabilities. Full checkout/order delivery still depends on other Sprint 2 tasks.
+The integrated app supports MySQL-backed product search/filter/sort, product details, accounts, guest and account carts, login cart merge, test checkout, order history/delivery tracking, and invoice PDF/email. The payment provider is simulated; no real money moves.
 
-# CS308 Group 13 — DOBBY Audiophile House
+Start with [current setup and release evidence](docs/sprint-2-release.md) and the [API contract](docs/sprint-2-api.md). The Sprint 1 plan below is retained as project history, not the current feature boundary.
+
+# CS308 Group 13 — DOBBY Audophile House
 
 A university group project to build an online store for high-end sound equipment.
 
 This README is the starting point for anyone joining or reviewing the project. You do not need to know the project beforehand: it explains what we are building, who does what, how the parts connect, and how to begin contributing.
 
-> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. The store name is DOBBY Audiophile House. The backend, product data, cards, products endpoint, and homepage integration are implemented.
+> **Documentation status:** This document describes the team's agreed basic Sprint 1 plan. The store name is DOBBY Audophile House. The backend, product data, cards, products endpoint, and homepage integration are implemented.
 
 ## 1. What are we building?
 
@@ -22,7 +24,7 @@ We are building an online store focused mainly on high-end audio equipment. Its 
 - DJ controllers and setups.
 - Other related sound equipment and accessories.
 
-The store name is **DOBBY Audiophile House**, chosen by Yunus on 5 November 2026.
+The store name is **DOBBY Audophile House**, chosen by Yunus on 5 November 2026.
 
 This is a CS308 course project by Group 13. Course requirements and the teaching team's instructions remain the source of truth for assessed deliverables; this README explains our working plan.
 
@@ -115,7 +117,7 @@ The **project root** is the top-level folder containing this README. Framework-s
 
 | Item | Current documentation |
 | --- | --- |
-| Final store name | DOBBY Audiophile House |
+| Final store name | DOBBY Audophile House |
 | GitHub repository address | https://github.com/boracelikors/CS308-project |
 | Frontend framework and version | React 19.3.1 + Vite 8.3.5; JavaScript and plain CSS |
 | Backend framework and version | Express 5.3.0 (Node.js) |

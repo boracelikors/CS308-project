@@ -95,7 +95,5 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      # The frontend test script arrives with the cart/checkout pull requests;
-      # until then this step is skipped instead of failing
-      - name: Unit tests
-        run: npm run test --if-present
+      - name: Unit and component tests
+        run: npm test
