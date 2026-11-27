@@ -12,7 +12,7 @@ function PublicReviews({ resource }) {
 
   return (
     <>
-      <p>{rating.count
+      <p className="review-summary">{rating.count
         ? `${rating.average.toFixed(1)} out of 5 · ${rating.count} ${rating.count === 1 ? 'rating' : 'ratings'}`
         : 'No ratings yet.'}</p>
       {comments.length === 0 ? <p>No published comments yet.</p> : (
@@ -38,6 +38,15 @@ const commentState = {
   rejected: 'Your comment was not approved. You can revise and resubmit it.',
 }
 
+function FeedbackMessage({ feedback }) {
+  if (!feedback) return null
+  return (
+    <p role={feedback.type === 'error' ? 'alert' : 'status'}>
+      {feedback.message}
+    </p>
+  )
+}
+
 function CustomerReview({ userId, productId, refreshPublic }) {
   const path = `/products/${productId}/reviews`
   const load = useCallback((signal) => apiRequest(`${path}/me`, { signal }), [path])
@@ -45,28 +54,64 @@ function CustomerReview({ userId, productId, refreshPublic }) {
   const [ratingDraft, setRatingDraft] = useState(null)
   const [commentDraft, setCommentDraft] = useState(null)
   const [busy, setBusy] = useState('')
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [ratingFeedback, setRatingFeedback] = useState(null)
+  const [commentFeedback, setCommentFeedback] = useState(null)
   const inFlight = useRef(false)
 
-  async function submit(event, kind) {
+  const selectedScore = ratingDraft ?? own.data?.rating ?? null
+  const commentValue = commentDraft ?? own.data?.comment?.body ?? ''
+
+  async function submitRating(event) {
     event.preventDefault()
     if (inFlight.current) return
+    const score = Number(selectedScore)
+    if (!Number.isInteger(score) || score < 1 || score > 5) {
+      setRatingFeedback({ type: 'error', message: 'Please select a rating from 1 to 5 stars.' })
+      return
+    }
     inFlight.current = true
-    const fields = new FormData(event.currentTarget)
-    const body = kind === 'rating' ? { score: Number(fields.get('score')) } : { body: fields.get('comment') }
-    setBusy(kind)
-    setError('')
-    setMessage('')
+    setBusy('rating')
+    setRatingFeedback(null)
     try {
-      const saved = await apiRequest(`${path}/${kind}`, { method: 'PUT', body })
-      setMessage(kind === 'rating' ? 'Your rating is public.' : saved.status === 'pending' ? 'Comment submitted for approval.' : 'Comment unchanged.')
-      if (kind === 'rating') setRatingDraft(null)
-      else setCommentDraft(null)
+      await apiRequest(`${path}/rating`, { method: 'PUT', body: { score } })
+      setRatingFeedback({ type: 'status', message: 'Your rating is public.' })
+      setRatingDraft(null)
       own.reload()
       refreshPublic()
     } catch (err) {
-      setError(err.message || 'Your review could not be saved. Please try again.')
+      setRatingFeedback({ type: 'error', message: err.message || 'Your rating could not be saved. Please try again.' })
+    } finally {
+      inFlight.current = false
+      setBusy('')
+    }
+  }
+
+  async function submitComment(event) {
+    event.preventDefault()
+    if (inFlight.current) return
+    const trimmed = commentValue.trim()
+    if (!trimmed) {
+      setCommentFeedback({ type: 'error', message: 'Please enter a comment before submitting.' })
+      return
+    }
+    if (trimmed.length > 1000) {
+      setCommentFeedback({ type: 'error', message: 'Comments must be 1000 characters or fewer.' })
+      return
+    }
+    inFlight.current = true
+    setBusy('comment')
+    setCommentFeedback(null)
+    try {
+      const saved = await apiRequest(`${path}/comment`, { method: 'PUT', body: { body: trimmed } })
+      setCommentFeedback({
+        type: 'status',
+        message: saved.status === 'pending' ? 'Comment submitted for approval.' : 'Comment unchanged.',
+      })
+      setCommentDraft(null)
+      own.reload()
+      refreshPublic()
+    } catch (err) {
+      setCommentFeedback({ type: 'error', message: err.message || 'Your comment could not be saved. Please try again.' })
     } finally {
       inFlight.current = false
       setBusy('')
@@ -76,28 +121,55 @@ function CustomerReview({ userId, productId, refreshPublic }) {
   return (
     <div className="review-editor">
       <h3>Your review</h3>
-      {error && <p role="alert">{error}</p>}
-      {message && <p role="status">{message}</p>}
       {own.status === 'loading' && <p role="status">Checking review eligibility…</p>}
       {own.status === 'error' && <p role="alert">Your review could not be loaded. <button onClick={own.reload}>Retry</button></p>}
       {own.status === 'notFound' && <p>This product is unavailable.</p>}
       {own.status === 'ready' && (own.data.eligible ? (
         <>
-          <form onSubmit={(event) => submit(event, 'rating')}>
-            <label htmlFor="review-score">Rating</label>
-            <select id="review-score" name="score" value={ratingDraft ?? own.data.rating ?? ''} onChange={(event) => setRatingDraft(event.target.value)} required disabled={Boolean(busy)}>
-              <option value="" disabled>Choose 1 to 5 stars</option>
-              {[1, 2, 3, 4, 5].map((score) => <option key={score} value={score}>{score} {score === 1 ? 'star' : 'stars'}</option>)}
-            </select>
-            <button disabled={Boolean(busy)}>{busy === 'rating' ? 'Saving rating…' : 'Save rating'}</button>
+          <form onSubmit={submitRating} noValidate>
+            <fieldset className="star-selector" disabled={Boolean(busy)}>
+              <legend>Rating</legend>
+              <div className="star-options">
+                {[1, 2, 3, 4, 5].map((score) => {
+                  const active = selectedScore !== null && score <= Number(selectedScore)
+                  return (
+                    <label key={score} className={`star-option${active ? ' star-option--active' : ''}`}>
+                      <input
+                        type="radio"
+                        name="score"
+                        value={score}
+                        checked={Number(selectedScore) === score}
+                        onChange={() => {
+                          setRatingDraft(score)
+                          setRatingFeedback(null)
+                        }}
+                        aria-label={`${score} ${score === 1 ? 'star' : 'stars'}`}
+                      />
+                      <span aria-hidden="true">{active ? '★' : '☆'}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              {selectedScore && (
+                <span className="star-selection-text" aria-live="polite">
+                  {selectedScore} out of 5 {Number(selectedScore) === 1 ? 'star' : 'stars'} selected
+                </span>
+              )}
+            </fieldset>
+            <FeedbackMessage feedback={ratingFeedback} />
+            <button type="submit" disabled={Boolean(busy)}>{busy === 'rating' ? 'Saving rating…' : 'Save rating'}</button>
           </form>
           {own.data.comment && <p>{commentState[own.data.comment.status]}</p>}
-          <form onSubmit={(event) => submit(event, 'comment')}>
+          <form onSubmit={submitComment} noValidate>
             <label htmlFor="review-comment">Comment</label>
-            <textarea id="review-comment" name="comment" rows={4} value={commentDraft ?? own.data.comment?.body ?? ''}
-              onChange={(event) => setCommentDraft(event.target.value)}
-              required maxLength={1000} disabled={Boolean(busy)} />
-            <button disabled={Boolean(busy)}>{busy === 'comment' ? 'Submitting comment…' : 'Submit comment'}</button>
+            <textarea id="review-comment" name="comment" rows={4} value={commentValue}
+              onChange={(event) => {
+                setCommentDraft(event.target.value)
+                setCommentFeedback(null)
+              }}
+              maxLength={1000} disabled={Boolean(busy)} />
+            <FeedbackMessage feedback={commentFeedback} />
+            <button type="submit" disabled={Boolean(busy)}>{busy === 'comment' ? 'Submitting comment…' : 'Submit comment'}</button>
           </form>
         </>
       ) : <p>You can review this product after your order is delivered.</p>)}
