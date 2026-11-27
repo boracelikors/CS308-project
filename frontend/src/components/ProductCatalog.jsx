@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import CatalogControls from './CatalogControls.jsx'
 import ProductList from './ProductList.jsx'
 import {
+  CATEGORIES,
   DEFAULT_PAGE_SIZE,
   buildCatalogQuery,
   parseCatalogParams,
@@ -207,6 +208,33 @@ export default function ProductCatalog() {
 
   return (
     <div className="catalogue-wrapper">
+      {/* 0. Quick category entry points (SCRUM-63) */}
+      <div className="category-entry-bar" role="group" aria-label="Browse by category">
+        <button
+          type="button"
+          className={`category-pill${filters.categoryId === '' ? ' category-pill--active' : ''}`}
+          aria-pressed={filters.categoryId === ''}
+          onClick={() => handleCategoryChange('')}
+        >
+          All Categories
+        </button>
+        {CATEGORIES.map((cat) => {
+          const catValue = String(cat.id)
+          const active = filters.categoryId === catValue
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              className={`category-pill${active ? ' category-pill--active' : ''}`}
+              aria-pressed={active}
+              onClick={() => handleCategoryChange(catValue)}
+            >
+              {cat.name}
+            </button>
+          )
+        })}
+      </div>
+
       {/* 1. Filter and sorting controls */}
       <CatalogControls
         search={searchInput}

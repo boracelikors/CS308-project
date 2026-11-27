@@ -1166,4 +1166,44 @@
 .review-editor select, .review-editor textarea { width: 100%; padding: .5rem; font: inherit; }
 .review-editor button, .manager-page button { justify-self: start; padding: .5rem .75rem; font: inherit; }
 .review-editor :is(select, textarea):focus-visible { outline: 3px solid #2a66c4; outline-offset: 3px; }
+/* Catalogue Category Entry Bar & Responsive Grid (SCRUM-63) */
+.category-entry-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.category-pill {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.category-pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.category-pill--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+.category-pill--active:hover {
+  color: #fff;
+}
+@media (max-width: 960px) {
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .hero { grid-template-columns: 1fr; padding: var(--space-8) var(--page-gutter); }
+  .sound-art { justify-self: center; }
+  .product-grid { grid-template-columns: 1fr; }
+  .catalog-controls { flex-direction: column; align-items: stretch; }
+  .catalog-control-group, .catalog-control-search { min-width: 0; flex: 1 1 auto; }
+}
 .manager-items { padding-left: 1.5rem; margin: 1rem 0; }

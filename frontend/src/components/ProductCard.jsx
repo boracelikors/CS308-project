@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCart } from '../cart/cartContext.js'
 import { formatPrice } from '../utils/formatPrice.js'
 
@@ -128,7 +129,7 @@ export default function ProductCard({ product }) {
     >
       {/* Image area with fallback placeholder and badges */}
       <div className="product-card-image-wrap">
-        <a href={`/products/${id}`} className="product-card-image-link" aria-label={`View details for ${name}`}>
+        <Link to={`/products/${id}`} className="product-card-image-link" aria-label={`View details for ${name}`}>
           {imageSrc && !imageError ? (
             <img
               src={imageSrc}
@@ -143,7 +144,7 @@ export default function ProductCard({ product }) {
               <span className="placeholder-category">{category || 'Audio'}</span>
             </div>
           )}
-        </a>
+        </Link>
 
         <div className="product-card-badges">
           {category && <span className="product-card-badge">{category}</span>}
@@ -161,9 +162,9 @@ export default function ProductCard({ product }) {
       {/* Card Details */}
       <div className="product-card-details">
         <h3 className="product-card-name" title={name}>
-          <a href={`/products/${id}`} className="product-card-link">
+          <Link to={`/products/${id}`} className="product-card-link">
             {name}
-          </a>
+          </Link>
         </h3>
 
         {description && <p className="product-card-description">{description}</p>}
