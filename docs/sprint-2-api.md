@@ -1,6 +1,6 @@
 # Sprint 2 interface contract — SCRUM-18
 
-Status: implementation-aligned integration contract, 13 November 2026. Verified against the combined open-PR candidate; teammate acceptance remains required. React/Vite + Express + MySQL/Knex remain unchanged. No team approval is implied.
+Status: implementation-aligned integration contract, 27 November 2026. Verified against main plus PR #28 and the final invoice UI integration; teammate acceptance remains required. React/Vite + Express + MySQL/Knex remain unchanged. No team approval is implied.
 
 ## Implemented endpoints
 All requests use the configured VITE_API_BASE_URL (default http://localhost:3001). JSON request bodies use Content-Type: application/json. Fetch always includes credentials. Login uses an HttpOnly session cookie; no tokens/passwords are stored in browser storage. Use the same hostname (localhost) for frontend and backend.
@@ -58,15 +58,17 @@ Contract set by the SCRUM-36 owner (Bartu). Implemented in the SCRUM-36 PR; deta
 | --- | --- | --- |
 | GET /orders/:id/invoice | owner customer or sales_manager session | {invoice:{number,orderId,orderedAt,issuedAt,customer:{name,email,taxId},deliveryAddress,items,total,currency,email}} |
 | GET /orders/:id/invoice/pdf | same | application/pdf attachment, filename "<number>.pdf" |
-| POST /orders/:id/invoice/email | same; no body | {email}; resends only if the last attempt failed |
+| POST /orders/:id/invoice/email | same; no body | {email}; sends a pending invoice or retries a failed/stale attempt; sent invoices are not resent |
 
 email is {status:"pending"|"sending"|"sent"|"failed",attempts,lastAttemptAt,sentAt,lastError}; lastError is a short code (e.g. ECONNREFUSED, MAIL_NOT_CONFIGURED) or null. Guests get 401, other roles 403; missing and other-customer orders both return 404 ORDER_NOT_FOUND. The checkout 201 response is unchanged: one invoice is issued in the checkout transaction and the email is sent after the response, so its status starts as pending. A mail failure never undoes the purchase. Frontend: after checkout and on the order detail page, offer "Download invoice (PDF)" (fetch with credentials, save the blob) and show the email status from GET /orders/:id/invoice, with a retry button when it is failed.
 
 ## Frontend integration handoff
-SessionProvider owns session loading, failure, authenticated and anonymous states. Protected routes are /profile, /checkout, /orders and /orders/:id. Public routes are /, /login, /register, /cart, /products/:id. The integration candidate mounts the product, cart, checkout and order pages. Main remains dependent on their PR merges.
+SessionProvider owns session loading, failure, authenticated and anonymous states. Protected routes are /profile, /checkout, /orders and /orders/:id. Public routes are /, /login, /register, /cart, /products/:id. The integration candidate mounts the product, cart, checkout and order pages. The invoice panel is now mounted on successful/recovered checkout and order detail. Other commerce dependencies are already merged.
 
 Bora: use useSession() and the shared apiRequest() client (api() is a compatibility alias). The window auth:login event carries {user}; auth:cleared means clear account-specific cart/order caches; auth:expired clears the session. Guest storage is never erased by authentication. Implement the asynchronous merge/retry UI in your cart provider and gate checkout on merge acknowledgement. Do not rely only on the event for refresh: derive the active account from useSession().user.id. Unmount/key private views by user ID and ignore stale requests.
 
 Safe returnTo accepts only same-site paths and excludes login/register loops. Signup redirects to login with a success message, then login returns to the retained target. A backend 401 from a non-auth endpoint triggers session expiry. Registration errors never log out an existing session.
 
 Profile support adds homeAddress to the backend's safe login/session projection; tax ID/password hash stay private. Existing sessions created before the change need logout/login to acquire that field.
+
+Email delivery limitation: concurrent normal retries are deduplicated. If a process dies after SMTP accepts a message but before the sent status is persisted, retrying a stale sending attempt can deliver a duplicate email. This does not create another order or charge. SMTP does not provide an exactly-once guarantee.

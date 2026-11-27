@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Counts test cases by kind, for the sprint report. Unit tests and integration tests are
-// reported separately so the unit-test number is real.
+// reported separately. Static declarations are an estimate; runtime reports are authoritative.
 //
 //   node scripts/count-tests.js                 counts in the current files
 //   node scripts/count-tests.js --since <ref>   also shows how many are new since a commit/branch
@@ -19,7 +19,8 @@ const ROOT = path.resolve(__dirname, "..");
 const KINDS = [
   { name: "backend unit", match: (f) => /^backend\/test\/[^/]+\.test\.js$/.test(f) },
   { name: "backend integration", match: (f) => /^backend\/db-tests\/[^/]+\.spec\.js$/.test(f) },
-  { name: "frontend unit", match: (f) => /^frontend\/src\/.+\.test\.(js|jsx)$/.test(f) },
+  { name: "frontend unit", match: (f) => /^frontend\/src\/.+\.test\.js$/.test(f) },
+  { name: "frontend component", match: (f) => /^frontend\/src\/.+\.test\.jsx$/.test(f) },
 ];
 const TEST_CALL = /^\s*(?:test|it)\(\s*["'`]/gm;
 
@@ -59,7 +60,7 @@ function main() {
 
   for (const { name } of KINDS) {
     const files = Object.keys(now[name]).sort();
-    console.log(`\n${name}: ${sum(now[name])} tests in ${files.length} files`);
+    console.log(`\n${name}: ${sum(now[name])} static test declarations in ${files.length} files`);
     for (const file of files) {
       const old = before ? before[name][file] ?? 0 : null;
       const delta = before && now[name][file] !== old ? `  (${now[name][file] - old >= 0 ? "+" : ""}${now[name][file] - old})` : "";

@@ -1,3 +1,4 @@
+import InvoicePanel from '../invoices/InvoicePanel.jsx'
 import { useCallback } from 'react'
 import { formatDate, formatMoney } from '../format.js'
 import { deliverySteps, parseOrderId, statusLabel } from './orderLogic.js'
@@ -73,6 +74,7 @@ export default function OrderDetailPage({ user, orderIdParam }) {
         </p>
       </div>
 
+      <InvoicePanel userId={user.id} orderId={data.id} />
       <p>
         <strong>Delivery address:</strong> {data.deliveryAddress}
       </p>

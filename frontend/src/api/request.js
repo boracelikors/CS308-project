@@ -19,7 +19,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest(path, { method = 'GET', body, signal, fetch: fetchImpl = globalThis.fetch, withResponse = false } = {}) {
+export async function apiRequest(path, { method = 'GET', body, signal, fetch: fetchImpl = globalThis.fetch, withResponse = false, responseType = 'json' } = {}) {
   let response
   try {
     response = await fetchImpl(`${API_BASE_URL}${path}`, {
@@ -35,6 +35,12 @@ export async function apiRequest(path, { method = 'GET', body, signal, fetch: fe
   }
 
   if (response.status === 204) return null
+  if (response.ok && responseType === 'pdf') {
+    if (!response.headers.get('Content-Type')?.toLowerCase().startsWith('application/pdf')) {
+      throw new ApiError('BAD_RESPONSE', 'The store did not return a PDF. Please try again.', { status: 500 })
+    }
+    return response.blob()
+  }
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {

@@ -1,3 +1,46 @@
+# Sprint 2 release handoff — 27 November 2026
+
+## Current functionality
+
+Accounts/session isolation, catalogue search/filter/sort, product details, guest cart persistence, authenticated cart merge, simulated checkout, order history and delivery tracking are integrated. PR #28 supplies invoice persistence/PDF/email. The final integration adds invoice download, email delivery status and retry controls to checkout confirmation and order detail, including recovered checkout confirmation.
+
+## Run locally from a fresh checkout
+
+Use Node.js 24 and MySQL 8.4 (the versions used in CI).
+
+1. In `backend`, run `npm ci`. Follow [DATABASE.md](../backend/DATABASE.md) to create a development database, a separate disposable test database and the application user.
+2. Copy `backend/.env.example` to `backend/.env`, set database credentials and a generated `SESSION_SECRET`. Never commit local secrets. Wait for MySQL to accept connections before migrations/startup; `docker start` alone does not mean MySQL is ready.
+3. Run `npm run migrate` and, for a new demo database only, `npm run seed`. Do not reset an existing database to fix a connection failure.
+4. Optionally start a local Mailpit test inbox: `docker run -d --name cs308-sprint2-mailpit -p 127.0.0.1:11025:1025 -p 127.0.0.1:18025:8025 axllent/mailpit`. If it already exists, use `docker start cs308-sprint2-mailpit`. Set `SMTP_HOST=127.0.0.1` and `SMTP_PORT=11025` in the backend environment. Inbox: http://localhost:18025. Without SMTP, checkout/PDF work and the UI reports email pending or failed.
+5. Start backend with `npm start`; verify `/health/db` returns database up, not merely that the server prints its listening address.
+6. In another terminal, `cd frontend`, `npm ci`, `npm run dev`. The default backend is http://localhost:3001 and frontend http://localhost:5173. For another backend, set `VITE_API_BASE_URL` in `frontend/.env.local`; add the exact frontend origin to backend `FRONTEND_ORIGIN` and restart both.
+7. If a port is occupied, reuse the existing application or choose a free port; do not kill an unknown process. For example: `VITE_API_BASE_URL=http://localhost:33026 npm run dev -- --port 5174 --strictPort`, with `http://localhost:5174` allowed by the backend.
+
+### Existing Yunus demo environment
+
+The prepared checkout is `sprint2-yunus`. Start Docker Desktop, then `docker start cs308-pr26-mysql cs308-sprint2-mailpit`. Wait until MySQL is ready (check `docker logs --tail 20 cs308-pr26-mysql`). In `backend`, `npm run migrate`, then `SMTP_HOST=127.0.0.1 SMTP_PORT=11025 npm start`. In `frontend`, run the alternate-port command above. Local URLs: storefront http://localhost:5174; backend http://localhost:33026; test inbox http://localhost:18025. The ignored backend environment already points at port 33326 and the existing development database. No deployment is required.
+
+## Verification on 27 November
+
+Candidate: main `477b345` plus PR #28 head `29e36d9` and final integration changes.
+
+- Backend unit tests: 173 passed.
+- Real MySQL database/API tests: 132 passed, zero skipped, on the isolated test database. Covers stock/payment/order concurrency, owner/role authorization and invoice behaviour.
+- Frontend unit tests: 111 passed; React component tests: 21 passed. Lint and production build passed.
+- Browser against Express/MySQL: an actual test checkout produced order #3 for 18,749.90 TRY; checkout confirmation and direct order detail displayed its invoice; downloaded PDF inspected visually, including brand, amounts and address.
+- Mailpit received INV-2026-000003 with the PDF attachment and matching amount. The storefront displayed sent status. This is local test delivery, not proof of delivery to an external email account.
+- Earlier browser evidence below records catalogue/guest cart/login merge, declined payment, delivery transitions, account isolation and narrow-screen checks. The viewport override on this run did not change the observed 1280px viewport; a new full multi-page 375/768/1440 matrix is not claimed.
+
+Orders created before invoice issuance was added keep their order history. The app shows that an invoice is unavailable for those orders because the original buyer snapshot was not stored.
+
+## Remaining human acceptance
+
+Implementation/test evidence is separate from teammate acceptance. Backend owners must acknowledge the SCRUM-18 contract; reviewers must acknowledge their assigned review. Each member must rehearse and explain their own code. Check the course's per-member meaningful commit counts, genuine bug reports, new unit tests and backlog thresholds against the official demo requirements; do not manufacture activity to meet a count. R5 delivered-purchase ratings/comments and moderation remain planned Sprint 3 work.
+
+## Historical evidence
+
+The dated notes below describe earlier snapshots. Statements about missing checkout, invoice, CI or other dependencies in those snapshots are superseded by the current section above.
+
 # Sprint 2 release handoff — SCRUM-41
 
 This branch implements SCRUM-18/26/27 and prepares release documentation. PR #26 has completed local integration verification and is ready for team review; reviewer approval and merge remain required. It does not mark Sprint 2 complete.

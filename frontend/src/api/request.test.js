@@ -73,3 +73,15 @@ describe('apiRequest', () => {
     )
   })
 })
+
+it('PDF responses use credentials and return a binary body', async () => {
+  const pdf = new Blob(['%PDF-test'], {type:'application/pdf'})
+  const result = await apiRequest('/orders/1/invoice/pdf', {responseType:'pdf', fetch:async (url, options)=>{
+    assert.equal(options.credentials, 'include')
+    return new Response(pdf, {headers:{'Content-Type':'application/pdf'}})
+  }})
+  assert.equal(await result.text(), '%PDF-test')
+})
+it('a successful HTML response is not downloaded as an invoice', async () => {
+  await assert.rejects(apiRequest('/orders/1/invoice/pdf', {responseType:'pdf', fetch:async()=>new Response('<html/>', {headers:{'Content-Type':'text/html'}})}), {code:'BAD_RESPONSE'})
+})
